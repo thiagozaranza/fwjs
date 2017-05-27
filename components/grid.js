@@ -51,7 +51,10 @@ FW.components.Grid = function(domr) {
             accepts: {
                 json: 'application/json'
             },
-            dataType: 'json'
+            dataType: 'json',
+            beforeSend: function( xhr ) {
+                beforeSend();
+            }
         }).done(function(xhr) {
             if (module && module.callbacks.hasOwnProperty('paginateDone') && typeof module.callbacks['paginateDone'] == 'function')
                 module.callbacks['paginateDone'](xhr);
@@ -68,7 +71,17 @@ FW.components.Grid = function(domr) {
         }).always(function(xhr) {
             if (module && module.callbacks.hasOwnProperty('paginateAlways') && typeof module.callbacks['paginateAlways'] == 'function')
                 module.callbacks['paginateAlways'](xhr);
+            else
+                paginateDone();
         });
+    };
+
+    function beforeSend () {
+        Grid.table.find('tr').css('opacity', 0.3);
+    };
+
+    function paginateDone () {
+        Grid.table.find('tr').css('opacity', 1);
     };
 
     function getFilters() {
