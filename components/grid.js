@@ -7,7 +7,7 @@ FW.components.Grid = function(domr) {
     Grid.domr = $(domr);
     Grid.table = Grid.domr.find('table');
     Grid.controller = Grid.domr.attr('fw-controller');
-    Grid.defauloperations = {
+    Grid.defaultOperations = {
         'edit': {
             'text': 'Editar',
             'icon': 'pencil',
@@ -18,7 +18,12 @@ FW.components.Grid = function(domr) {
             'icon': 'trash',
             'class': 'danger'
         }
-    }
+    };
+
+    Grid.parses = {
+        'show': parseShow,
+        'dateFormat': parseDateFormat,
+    };
 
     var module = FW.getModule(Grid.domr.attr('fw-controller'));
 
@@ -120,10 +125,14 @@ FW.components.Grid = function(domr) {
         var columns = [];
 
         head.find('th').each(function() {
-            var fieldName = $(this).attr('fw-col-name');
 
-            if (fieldName)
-                columns.push(fieldName);
+            var column = {};
+
+            column.name = $(this).attr('fw-col-name');
+            column.parse = $(this).attr('fw-parse');
+
+            if (column.name)
+                columns.push(column);
         });
 
         return columns;
@@ -152,10 +161,10 @@ FW.components.Grid = function(domr) {
             if (opParts.length > 0)
                 opName  = opParts[0];
 
-            if (Grid.defauloperations.hasOwnProperty(opName)) {
-                opClass = Grid.defauloperations[opName].class;
-                opIcon = Grid.defauloperations[opName].icon;
-                opText = Grid.defauloperations[opName].text;
+            if (Grid.defaultOperations.hasOwnProperty(opName)) {
+                opClass = Grid.defaultOperations[opName].class;
+                opIcon = Grid.defaultOperations[opName].icon;
+                opText = Grid.defaultOperations[opName].text;
             } else {
                 if (opParts.length > 1)
                     opClass = opParts[1];
@@ -242,6 +251,9 @@ FW.components.Grid = function(domr) {
 
     function renderTable(list) {
 
+        if (!Grid.table.find('tbody').length)
+            Grid.table.append($(document.createElement('tbody')));
+
         var body = Grid.table.find('tbody');
 
         body.find('tr').remove();
@@ -258,11 +270,18 @@ FW.components.Grid = function(domr) {
 
             for (var col in columns) {
 
-                var propParts = columns[col].split('.');
+                var propParts = columns[col].name.split('.');
                 var source = list[item];
 
                 for (part in propParts) {
                     source = source[propParts[part]];
+                }
+
+                if (columns[col].parse) {
+                    if (typeof Grid.parses[columns[col].parse] == 'function')
+                        source = Grid.parses[columns[col].parse](source);
+                    else if (typeof module.parsers[columns[col].parse] == 'function')
+                        source = module.parsers[columns[col].parse](source);
                 }
 
                 var td = $(document.createElement('td'));
@@ -376,6 +395,34 @@ FW.components.Grid = function(domr) {
             Grid.paginate(page)
         });
     }
+
+    function parseShow(txt) {
+
+        var link = $(document.createElement('a'));
+        link.attr('href', 'javascript:;');
+        link.html(txt);
+        link.attr('fw-id', txt);
+
+        link.on('click', function() {
+            module.actions.show(txt);
+        });
+
+        return link;
+    };
+
+    function parseDateFormat(txt) {
+
+        var parts = txt.split(' ');
+
+        var dateParts = parts[0].split('-');
+
+        txt = dateParts[2] + '/' + dateParts[1] + '/' + dateParts[0];
+
+        if (parts.length > 0)
+            txt += ' ' +  parts[1];
+
+        return txt;
+    };
 
     function scan() {
 

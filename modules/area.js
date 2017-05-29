@@ -12,9 +12,19 @@ FW.modules.Area = (function($, FW) {
     {
         Area = FW.components.Module($, Area);
 
-        //Area.actions.create = function() {
-        //    alert(Area.config.controller);
-        //};
+        Area.actions.favorito = function(domr) {
+            alert('Favoritar ' + $(domr).attr('fw-id'));
+        };
+
+        Area.parsers.date = function(txt) {
+            var parts = txt.split(' ');
+
+            var dateParts = parts[0].split('-');
+
+            txt = dateParts[2] + '/' + dateParts[1] + '/' + dateParts[0];
+
+            return txt;
+        };
 
         $(document).ready(function($) {
             FW.scan();

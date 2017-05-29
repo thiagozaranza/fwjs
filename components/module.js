@@ -8,6 +8,10 @@ FW.components.Module = function($, module) {
         buttons: []
     };
 
+    module.parsers = {
+
+    };
+
     module.callbacks = {
         storeDone: function(xhr) {
             module.actions.show(xhr.area.id);
