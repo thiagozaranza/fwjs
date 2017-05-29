@@ -7,6 +7,18 @@ FW.components.Grid = function(domr) {
     Grid.domr = $(domr);
     Grid.table = Grid.domr.find('table');
     Grid.controller = Grid.domr.attr('fw-controller');
+    Grid.defauloperations = {
+        'edit': {
+            'text': 'Editar',
+            'icon': 'pencil',
+            'class': 'default'
+        },
+        'destroy': {
+            'text': 'Deletar',
+            'icon': 'trash',
+            'class': 'danger'
+        }
+    }
 
     var module = FW.getModule(Grid.domr.attr('fw-controller'));
 
@@ -117,6 +129,67 @@ FW.components.Grid = function(domr) {
         return columns;
     };
 
+    function getOperations() {
+
+        var thOp = Grid.table.find('th[fw-col-buttons]');
+
+        var operationsDef = thOp.attr('fw-col-buttons');
+
+        operationsParts = operationsDef.split(' ');
+        operationsParts.reverse();
+
+        var buttons = [];
+
+        for (var item in operationsParts) {
+            var op = operationsParts[item];
+            var opParts = op.split('_');
+
+            var opName  = '';
+            var opClass = 'default';
+            var opIcon  = null;
+            var opText  = '';
+
+            if (opParts.length > 0)
+                opName  = opParts[0];
+
+            if (Grid.defauloperations.hasOwnProperty(opName)) {
+                opClass = Grid.defauloperations[opName].class;
+                opIcon = Grid.defauloperations[opName].icon;
+                opText = Grid.defauloperations[opName].text;
+            } else {
+                if (opParts.length > 1)
+                    opClass = opParts[1];
+                if (opParts.length > 2)
+                    opIcon  = opParts[2];
+                if (opParts.length > 3)
+                    opText = opParts[3];
+            }
+
+            if (!opName)
+                return;
+
+            var button = $(document.createElement('button'));
+            button.addClass('btn btn-' + opClass + ' btn-xs pull-right');
+            button.attr('fw-action', opName);
+            button.css('margin-left', '10px');
+            button.html(opText);
+
+            if (opIcon) {
+                var icon = $(document.createElement('span'));
+                icon.addClass('glyphicon');
+                icon.addClass('glyphicon-' + opIcon);
+                icon.attr('aria-hidden', "true");
+                if (opText)
+                    icon.css('margin-right', '5px');
+                button.prepend(icon);
+            }
+
+            buttons.push(button);
+        }
+
+        return buttons;
+    }
+
     function renderTh() {
 
         Grid.table.find('th').each(function() {
@@ -175,6 +248,8 @@ FW.components.Grid = function(domr) {
 
         var columns = getColumns();
 
+        var operations = getOperations();
+
         for (item in list) {
 
             body.append('<tr></tr>');
@@ -190,10 +265,39 @@ FW.components.Grid = function(domr) {
                     source = source[propParts[part]];
                 }
 
-                line.append('<td>' + source + '</td>');
+                var td = $(document.createElement('td'));
+                td.append(source);
+
+                line.append(td);
             }
-            line.append('<td></td>');
+
+            var tdOperations = $(document.createElement('td'));
+
+            for (var op in operations) {
+                var op = operations[op];
+                var id = null;
+                if (list[item].hasOwnProperty('id'))
+                    id = list[item].id;
+                else if (list[item].hasOwnProperty('codigo'))
+                    id = list[item].codigo;
+
+                op.attr('fw-id', id);
+
+                tdOperations.append(op);
+            }
+
+            line.append(tdOperations.clone());
         }
+
+        Grid.table.find('button').on('click', function() {
+            var id = $(this).attr('fw-id');
+            var action = $(this).attr('fw-action');
+            var module = FW.getModule(Grid.controller);
+
+            if (module && module.actions.hasOwnProperty(action) && typeof module.actions[action] == 'function') {
+                module.actions[action]($(this));
+            }
+        });
 
         renderTh();
     };

@@ -14,6 +14,12 @@ window.FW = {
         }
     },
 
+    getToken: function() {
+        var tokenEl = $('[fw-token]');
+        if (tokenEl)
+            return tokenEl.attr('fw-token');
+    },
+
     scan: function() {
 
         $("form").each(function() {

@@ -54,7 +54,7 @@ FW.components.Module = function($, module) {
         },
         destroy: function (domr) {
             var id = domr.attr('fw-id');
-            var token = domr.attr('fw-token');
+            var token = FW.getToken();
 
             if (id && token)
                 FW.helpers.Rest.destroy(module, {id: id, _token: token});
