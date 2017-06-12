@@ -27,9 +27,13 @@ FW.helpers.Rest = (function($, FW) {
         }).done(function(xhr) {
             if (module.callbacks.hasOwnProperty('storeDone') && typeof module.callbacks['storeDone'] == 'function')
                 module.callbacks['storeDone'](xhr);
-        }).fail(function(xhr) {
+        }).fail(function(xhr, status) {
             if (module.callbacks.hasOwnProperty('storeFail') && typeof module.callbacks['storeFail'] == 'function')
                 module.callbacks['storeFail'](xhr);
+
+            if (status == 401)
+                alert('Operação não autorizada! Verifique se seu login expirou.')
+
         }).always(function(xhr) {
             if (module.callbacks.hasOwnProperty('storeAlways') && typeof module.callbacks['storeAlways'] == 'function')
                 module.callbacks['storeAlways'](xhr);

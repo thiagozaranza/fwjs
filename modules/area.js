@@ -5,7 +5,7 @@ FW.modules.Area = (function($, FW) {
     var Area = Area || {};
 
     Area.config = {
-        controller: 'areas'
+        controller: 'area'
     };
 
     function init()

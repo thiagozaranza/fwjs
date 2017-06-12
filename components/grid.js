@@ -20,11 +20,6 @@ FW.components.Grid = function(domr) {
         }
     };
 
-    Grid.parses = {
-        'show': parseShow,
-        'dateFormat': parseDateFormat,
-    };
-
     var module = FW.getModule(Grid.domr.attr('fw-controller'));
 
     function init() {
@@ -58,7 +53,11 @@ FW.components.Grid = function(domr) {
         var url = FW.config.url;
 
         if (Grid.domr.attr('fw-url'))
-            url = Grid.domr.attr('fw-url')
+            url = Grid.domr.attr('fw-url');
+
+        var jwt = FW.getJWT();
+        if (jwt)
+            data['jwt'] = jwt;
 
         $.ajax({
             url: url + '/' + Grid.controller,
@@ -82,9 +81,13 @@ FW.components.Grid = function(domr) {
                 if (xhr.hasOwnProperty('paginator'))
                     renderPaginator(xhr.paginator);
             }
-        }).fail(function(xhr) {
+        }).fail(function(xhr, textStatus) {
             if (module.callbacks.hasOwnProperty('paginateFail') && typeof module.callbacks['paginateFail'] == 'function')
                 module.callbacks['paginateFail'](xhr);
+            else if (xhr.status == 401)
+                alert('Operação não autorizada! Verifique se seu login expirou.');
+            else
+                alert(textStatus);
         }).always(function(xhr) {
             if (module && module.callbacks.hasOwnProperty('paginateAlways') && typeof module.callbacks['paginateAlways'] == 'function')
                 module.callbacks['paginateAlways'](xhr);
@@ -264,9 +267,7 @@ FW.components.Grid = function(domr) {
 
         for (item in list) {
 
-            body.append('<tr></tr>');
-
-            var line = body.find('tr:last-child');
+            var tr = $(document.createElement('tr'));
 
             for (var col in columns) {
 
@@ -274,20 +275,16 @@ FW.components.Grid = function(domr) {
                 var source = list[item];
 
                 for (part in propParts) {
-                    source = source[propParts[part]];
+                    if(source && propParts.hasOwnProperty(part))
+                        source = source[propParts[part]];
                 }
 
-                if (columns[col].parse) {
-                    if (typeof Grid.parses[columns[col].parse] == 'function')
-                        source = Grid.parses[columns[col].parse](source);
-                    else if (typeof module.parsers[columns[col].parse] == 'function')
-                        source = module.parsers[columns[col].parse](source);
-                }
+                if (FW.helpers.Parser.isValid(module, columns[col].parse))
+                    source = FW.helpers.Parser.parse(module, columns[col].parse, source);
 
                 var td = $(document.createElement('td'));
                 td.append(source);
-
-                line.append(td);
+                tr.append(td);
             }
 
             var tdOperations = $(document.createElement('td'));
@@ -305,7 +302,9 @@ FW.components.Grid = function(domr) {
                 tdOperations.append(op);
             }
 
-            line.append(tdOperations.clone());
+            tr.append(tdOperations.clone());
+
+            body.append(tr);
         }
 
         Grid.table.find('button').on('click', function() {
@@ -395,34 +394,6 @@ FW.components.Grid = function(domr) {
             Grid.paginate(page)
         });
     }
-
-    function parseShow(txt) {
-
-        var link = $(document.createElement('a'));
-        link.attr('href', 'javascript:;');
-        link.html(txt);
-        link.attr('fw-id', txt);
-
-        link.on('click', function() {
-            module.actions.show(txt);
-        });
-
-        return link;
-    };
-
-    function parseDateFormat(txt) {
-
-        var parts = txt.split(' ');
-
-        var dateParts = parts[0].split('-');
-
-        txt = dateParts[2] + '/' + dateParts[1] + '/' + dateParts[0];
-
-        if (parts.length > 0)
-            txt += ' ' +  parts[1];
-
-        return txt;
-    };
 
     function scan() {
 

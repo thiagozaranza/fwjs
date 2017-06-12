@@ -14,13 +14,13 @@ FW.components.Module = function($, module) {
 
     module.callbacks = {
         storeDone: function(xhr) {
-            module.actions.show(xhr.area.id);
+            module.actions.show(xhr.model.id);
         },
         storeFail: function(xhr) {
             alert('Erro ao salvar o registro');
         },
         updateDone: function(xhr) {
-            module.actions.show(xhr.area.id);
+            module.actions.show(xhr.model.id);
         },
         updateFail: function(xhr) {
             alert('Erro ao editar o registro');
