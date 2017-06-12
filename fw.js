@@ -44,35 +44,7 @@ window.FW = {
             if (!controller)
                 return;
 
-            var select = $(this);
-
-            $.ajax({
-                url: FW.config.url + '/' + controller,
-                method: "GET",
-                context: document.body,
-                data: {
-                    limit: 999999,
-                    orderBy: 'nome'
-                },
-                accepts: {
-                    json: 'application/json'
-                },
-                dataType: 'json',
-                beforeSend: function( xhr ) {
-                    select.find('option').remove();
-                    select.append('<option>carregando opções...</option>');
-                }
-            }).done(function(xhr) {
-
-                select.find('option').remove();
-                select.append('<option></option>');
-                for (var i in xhr.list) {
-                    select.append('<option value="'+xhr.list[i].id+'">'+xhr.list[i].nome+'</option>')
-                }
-
-            }).fail(function(xhr, textStatus) {
-                alert(textStatus);
-            });
+            new FW.components.Combo($(this));
         });
 
         $("[fw-component='grid']").each(function() {
