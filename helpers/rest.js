@@ -13,7 +13,73 @@ FW.helpers.Rest = (function($, FW) {
         return $("input[name='_token']").val();
     };
 
+    Rest.get = function(controller, callbacks, id) {
+
+        var data = [];
+
+        data['jwt'] = FW.getJWT();
+
+        $.ajax({
+            url: FW.config.url + '/' + controller + '/' + id,
+            method: "GET",
+            context: document.body,
+            data: data,
+            accepts: {
+                json: 'application/json'
+            },
+            dataType: 'json',
+            beforeSend: function( xhr ) {
+                if (callbacks.hasOwnProperty('beforeSend'))
+                    callbacks['beforeSend'](xhr);
+            }
+        }).done(function(xhr, textStatus) {
+            if (callbacks.hasOwnProperty('done'))
+                callbacks['done'](xhr, textStatus);
+        }).fail(function(xhr, textStatus) {
+            if (callbacks.hasOwnProperty('done'))
+                callbacks['fail'](xhr, textStatus);
+        }).always(function(xhr) {
+            if (callbacks.hasOwnProperty('always'))
+                callbacks['always'](xhr);
+        });
+    };
+
+    Rest.getList = function(controller, callbacks, data) {
+
+        if (!data)
+            data = [];
+
+        data['jwt'] = FW.getJWT();
+
+        $.ajax({
+            url: FW.config.url + '/' + controller,
+            method: "GET",
+            context: document.body,
+            data: data,
+            accepts: {
+                json: 'application/json'
+            },
+            dataType: 'json',
+            beforeSend: function( xhr ) {
+                if (callbacks.hasOwnProperty('beforeSend'))
+                    callbacks['beforeSend'](xhr);
+            }
+        }).done(function(xhr, textStatus) {
+            if (callbacks.hasOwnProperty('done'))
+                callbacks['done'](xhr, textStatus);
+        }).fail(function(xhr, textStatus) {
+            if (callbacks.hasOwnProperty('done'))
+                callbacks['fail'](xhr, textStatus);
+        }).always(function(xhr) {
+            if (callbacks.hasOwnProperty('always'))
+                callbacks['always'](xhr);
+        });
+    };
+
     Rest.store = function(module, obj) {
+
+        if (!obj.hasOwnProperty('_token') && FW.getToken())
+            obj['_token'] = FW.getToken();
 
         $.ajax({
             url: FW.config.url + '/' + module.config.controller,
@@ -42,6 +108,9 @@ FW.helpers.Rest = (function($, FW) {
 
     Rest.update = function(module, obj) {
 
+        if (!obj.hasOwnProperty('_token') && FW.getToken())
+            obj['_token'] = FW.getToken();
+
         $.ajax({
             url: FW.config.url + '/' + module.config.controller + '/' + obj.id,
             method: "PUT",
@@ -67,12 +136,44 @@ FW.helpers.Rest = (function($, FW) {
 
         if (confirm('Deseja realmente deletar este registro?')) {
 
+            if (!obj.hasOwnProperty('_token') && FW.getToken())
+                obj['_token'] = FW.getToken();
+
             $.ajax({
                 url: FW.config.url + '/' + module.config.controller + '/' + obj.id,
                 method: "DELETE",
                 data: {
                     _token: obj._token
                 },
+                context: document.body,
+                accepts: {
+                    json: 'application/json'
+                },
+                dataType: 'json'
+            }).done(function(xhr) {
+                if (module.callbacks.hasOwnProperty('destroyDone') && typeof module.callbacks['destroyDone'] == 'function')
+                    module.callbacks['destroyDone'](xhr);
+            }).fail(function(xhr) {
+                if (module.callbacks.hasOwnProperty('destroyFail') && typeof module.callbacks['destroyFail'] == 'function')
+                    module.callbacks['destroyFail'](xhr);
+            }).always(function(xhr) {
+                if (module.callbacks.hasOwnProperty('destroyAlways') && typeof module.callbacks['destroyAlways'] == 'function')
+                    module.callbacks['destroyAlways'](xhr);
+            });
+        }
+    };
+
+    Rest.destroyFile = function(module, params) {
+
+        if (confirm('Deseja realmente deletar este arquivo?')) {
+
+            if (!params.hasOwnProperty('_token') && FW.getToken())
+                params['_token'] = FW.getToken();
+
+            $.ajax({
+                url: FW.config.url + '/' + module.config.controller + '/deleteFile',
+                method: "POST",
+                data: params,
                 context: document.body,
                 accepts: {
                     json: 'application/json'

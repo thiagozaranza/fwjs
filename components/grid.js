@@ -3,12 +3,14 @@ FW.components.Grid = function(domr) {
     "Use Strict";
 
     var Grid = Grid || {};
-
-    Grid.domr = $(domr);
-    Grid.table = Grid.domr.find('table');
-    Grid.controller = Grid.domr.attr('fw-controller');
+    
     Grid.defaultOperations = {
         'edit': {
+            'text': 'Editar',
+            'icon': 'pencil',
+            'class': 'default'
+        },
+        'modalEdit': {
             'text': 'Editar',
             'icon': 'pencil',
             'class': 'default'
@@ -20,47 +22,64 @@ FW.components.Grid = function(domr) {
         }
     };
 
-    var module = FW.getModule(Grid.domr.attr('fw-controller'));
+    function init(domr) {
 
-    function init() {
+        Grid = FW.components.Component(Grid, domr);
 
-        $(document).ready(function($) {
+        Grid.table = Grid.domr.find('table');
+
+        if (!Grid.getModule()) return;
+
+        $(document).ready(function() {
             scan();
             Grid.paginate(1);
         });
 
+        FW.registerComponent('grid', Grid);
+
         return Grid;
     };
 
-    Grid.paginate = function(page) {
+    function getPage() {
+        $page = Grid.domr.find('.pagination li.active a');
+        return ($page.length)? $page.text() : 1;
+    };
+
+    function getLimit() {
+        $limit = Grid.domr.find('.grid-limit');
+        return ($limit.length)? $limit.val() : 10;
+    };
+
+    function getOrder() {
+        $order = Grid.table.find("th[fw-order]");
+        if ($order.length) {
+            var way = $order.attr('fw-order');
+            var colName = $order.attr('fw-col-name');
+            if (colName.indexOf('.') > 0)
+                colName = colName.split('.')[0] + '_id';
+            return colName + ',' + way;
+        }
+    };
+
+    Grid.refresh = function() {
+        Grid.paginate(getPage());
+    };
+
+    Grid.paginate = function( page ) {
 
         var data = {};
 
-        if (page)
-            data['page'] = page;
-
-        var orderEl = Grid.table.find("th[fw-order]");
-        if (orderEl.length)
-            data['orderBy'] = orderEl.attr('fw-col-name') + ',' + orderEl.attr('fw-order');
+        data['page'] = page;
+        data['orderBy'] = getOrder();
+        data['limit'] = getLimit();
+        data['jwt'] = FW.getJWT();
 
         $.extend(data, getFilters());
 
-        var limit = getLimit();
-
-        if (limit)
-            data['limit'] = limit;
-
-        var url = FW.config.url;
-
-        if (Grid.domr.attr('fw-url'))
-            url = Grid.domr.attr('fw-url');
-
-        var jwt = FW.getJWT();
-        if (jwt)
-            data['jwt'] = jwt;
+        var url = (Grid.domr.attr('fw-url'))? Grid.domr.attr('fw-url') : FW.config.url;
 
         $.ajax({
-            url: url + '/' + Grid.controller,
+            url: url + '/' + Grid.getController(),
             method: "GET",
             context: document.body,
             data: data,
@@ -68,29 +87,29 @@ FW.components.Grid = function(domr) {
                 json: 'application/json'
             },
             dataType: 'json',
-            beforeSend: function( xhr ) {
+            beforeSend: function(xhr) {
                 beforeSend();
             }
         }).done(function(xhr) {
-            if (module && module.callbacks.hasOwnProperty('paginateDone') && typeof module.callbacks['paginateDone'] == 'function')
-                module.callbacks['paginateDone'](xhr);
-            else {
-                if (xhr.hasOwnProperty('list'))
-                    renderTable(xhr.list);
+            if (Grid.getModule() && Grid.getModule().callbacks.hasOwnProperty('paginateDone') && typeof Grid.getModule().callbacks['paginateDone'] == 'function')
+                Grid.getModule().callbacks['paginateDone'](xhr);
 
-                if (xhr.hasOwnProperty('paginator'))
-                    renderPaginator(xhr.paginator);
-            }
+            if (xhr.hasOwnProperty('list'))
+                renderTable(xhr.list);
+
+            if (xhr.hasOwnProperty('paginator'))
+                renderPaginator(xhr.paginator);
+
         }).fail(function(xhr, textStatus) {
-            if (module.callbacks.hasOwnProperty('paginateFail') && typeof module.callbacks['paginateFail'] == 'function')
-                module.callbacks['paginateFail'](xhr);
+            if (Grid.getModule().callbacks.hasOwnProperty('paginateFail') && typeof Grid.getModule().callbacks['paginateFail'] == 'function')
+                Grid.getModule().callbacks['paginateFail'](xhr);
             else if (xhr.status == 401)
                 alert('Operação não autorizada! Verifique se seu login expirou.');
             else
                 alert(textStatus);
         }).always(function(xhr) {
-            if (module && module.callbacks.hasOwnProperty('paginateAlways') && typeof module.callbacks['paginateAlways'] == 'function')
-                module.callbacks['paginateAlways'](xhr);
+            if (Grid.getModule() && Grid.getModule().callbacks.hasOwnProperty('paginateAlways') && typeof Grid.getModule().callbacks['paginateAlways'] == 'function')
+                Grid.getModule().callbacks['paginateAlways'](xhr);
             else
                 paginateDone();
         });
@@ -113,13 +132,28 @@ FW.components.Grid = function(domr) {
         if (form.length) {
             var fields = form.serializeArray();
             for (var item in fields) {
-                if (fields[item].value)
-                    filters[fields[item].name + '.LK'] = fields[item].value;
+                var op = 'EQ';
+                if (form.find('[name="'+fields[item].name+'"]')[0].localName == 'input')
+                    op = 'LK';
+
+                if (fields[item].value && fields[item].value != 'Carregando opções...')
+                    filters[fields[item].name + '.' + op] = fields[item].value;
             }
         }
 
+        Grid.domr.each(function() {
+            $.each(this.attributes, function() {
+                if(this.specified) {
+                    if (this.name == 'fw-id')
+                        filters['id.EQ'] = this.value;
+                    else if (this.name.indexOf('fw-param-') >= 0)
+                        filters[this.name.substring('fw-param-'.length, this.name.length) + '.EQ'] = this.value;
+                }
+            });
+        });
+
         return filters;
-    }
+    };
 
     function getColumns() {
 
@@ -168,6 +202,10 @@ FW.components.Grid = function(domr) {
                 opClass = Grid.defaultOperations[opName].class;
                 opIcon = Grid.defaultOperations[opName].icon;
                 opText = Grid.defaultOperations[opName].text;
+            } else if (Grid.getModule().operations.hasOwnProperty(opName)) {
+                opClass = Grid.getModule().operations[opName].class;
+                opIcon = Grid.getModule().operations[opName].icon;
+                opText = Grid.getModule().operations[opName].text;
             } else {
                 if (opParts.length > 1)
                     opClass = opParts[1];
@@ -200,7 +238,7 @@ FW.components.Grid = function(domr) {
         }
 
         return buttons;
-    }
+    };
 
     function renderTh() {
 
@@ -237,25 +275,18 @@ FW.components.Grid = function(domr) {
 
                 $(this).append('<span class="caret"></span>');
 
-                Grid.paginate(getPage());
+                Grid.refresh();
             });
         });
     };
 
-    function getPage() {
-
-        return Grid.domr.find('.active').find('a').attr('fw-page');
-    }
-
-    function getLimit() {
-
-        return Grid.domr.find('.grid-limit').val();
-    }
-
-    function renderTable(list) {
+    function renderTable( list ) {
 
         if (!Grid.table.find('tbody').length)
             Grid.table.append($(document.createElement('tbody')));
+
+        Grid.table.css('margin-bottom', '5px');
+        Grid.table.addClass('table-condensed table-bordered table-hover table-striped');
 
         var body = Grid.table.find('tbody');
 
@@ -265,26 +296,20 @@ FW.components.Grid = function(domr) {
 
         var operations = getOperations();
 
+        if (list.length == 0) {
+            var tr = $(document.createElement('tr'));
+            var td = $(document.createElement('td')).attr('colspan', 99).css('color', 'red').css('text-align', 'center').text('Nenhum registro encontrado.');
+            body.append(tr.append(td));
+        }
+
         for (item in list) {
 
             var tr = $(document.createElement('tr'));
 
             for (var col in columns) {
-
-                var propParts = columns[col].name.split('.');
-                var source = list[item];
-
-                for (part in propParts) {
-                    if(source && propParts.hasOwnProperty(part))
-                        source = source[propParts[part]];
-                }
-
-                if (FW.helpers.Parser.isValid(module, columns[col].parse))
-                    source = FW.helpers.Parser.parse(module, columns[col].parse, source);
-
-                var td = $(document.createElement('td'));
-                td.append(source);
-                tr.append(td);
+                tr.append($(document.createElement('td')).append(
+                    FW.helpers.Parser.parse(Grid.getModule(), columns[col].parse, list[item], columns[col].name)
+                ));
             }
 
             var tdOperations = $(document.createElement('td'));
@@ -305,43 +330,45 @@ FW.components.Grid = function(domr) {
             tr.append(tdOperations.clone());
 
             body.append(tr);
-        }
+        };
 
-        Grid.table.find('button').on('click', function() {
-            var id = $(this).attr('fw-id');
+        Grid.table.find('button, a').on('click', function() {
             var action = $(this).attr('fw-action');
-            var module = FW.getModule(Grid.controller);
+            var module = FW.getModule(Grid.getController());
 
             if (module && module.actions.hasOwnProperty(action) && typeof module.actions[action] == 'function') {
-                module.actions[action]($(this));
+                module.actions[action]({ id: $(this).attr('fw-id') });
             }
         });
 
         renderTh();
     };
 
-    function renderPaginator(paginator) {
+    function renderPaginator( paginator ) {
 
         Grid.domr.find('.paginator').remove();
 
+        if (!paginator.total)
+            return;
+
         Grid.table.parent().append('<div class="row paginator">'
-            + '<div class="col-sm-4 col-md-2 col-lg-2 paginator-info" style="margin-top: 15px"></div>'
-            + '<div class="col-sm-6 col-md-8 col-lg-9">'
-            + '     <div class="text-center"><nav><ul class="pagination"></ul></nav></div>'
-            + '</div>'
-            + '<div class="col-sm-2 col-md-2 col-lg-1 paginator-options">'
-            + ' <div class="form-group">'
-            + '     <label>Limite:</label>'
-            + '     <select class="form-control grid-limit" style="width: 75px;">'
-            + '         <option></option>'
-            + '         <option>5</option>'
-            + '         <option>10</option>'
-            + '         <option>20</option>'
-            + '         <option>50</option>'
-            + '         <option>100</option>'
-            + '     </select>'
-            + ' </div>'
-            + '</div>'
+            + '<div class="col-sm-4 col-md-2 col-lg-2 paginator-info" style="margin-top: 15px;"></div>'
+            + '    <div class="col-sm-6 col-md-8 col-lg-9">'
+            + '         <div class="text-center"><nav><ul class="pagination"></ul></nav></div>'
+            + '     </div>'
+            + '     <div class="col-sm-2 col-md-2 col-lg-1 paginator-options" style="padding-left: 0px">'
+            + '         <div class="form-group">'
+            + '             <label>Limite:</label>'
+            + '             <select class="form-control grid-limit" style="width: 75px;">'
+            + '                 <option></option>'
+            + '                 <option>5</option>'
+            + '                 <option>10</option>'
+            + '                 <option>20</option>'
+            + '                 <option>50</option>'
+            + '                 <option>100</option>'
+            + '             </select>'
+            + '         </div>'
+            + '     </div>'
             + '</div>');
 
         Grid.domr.find('.grid-limit').val(paginator.limit).on('change', function() {
@@ -352,7 +379,7 @@ FW.components.Grid = function(domr) {
         if (final > paginator.total)
             final = paginator.total;
 
-        Grid.domr.find('.paginator-info').html('Exibindo '+ (paginator.offset+1) + ' a ' + final + ' de ' + paginator.total + ' resultados.');
+        Grid.domr.find('.paginator-info').html('<small>'+ (paginator.offset+1) + ' a ' + final + ' de ' + paginator.total + '</small>');
 
         var pagination = Grid.domr.find('.pagination');
 
@@ -403,11 +430,31 @@ FW.components.Grid = function(domr) {
             }).keydown(function( event ) {
                 if ( event.which == 13 ) {
                     event.preventDefault();
+                    Grid.domr.find('form').find('button[fw-action="erase-filters"]').show();
                     Grid.paginate(1);
                 }
             })
         });
+
+        Grid.domr.find('form').find('select').each(function() {
+            $(this).on('change', function( event ) {
+                event.preventDefault();
+                Grid.domr.find('form').find('button[fw-action="erase-filters"]').show();
+                Grid.paginate(1);
+            });
+        });
+
+        Grid.domr.find('form').find('button[fw-action="erase-filters"]').on('click', function() {
+            Grid.domr.find('form').find('input').each(function() {
+                $(this).val('');
+            });
+            Grid.domr.find('form').find('select').each(function() {
+                $(this).val('');
+            });
+            $(this).hide();
+            Grid.paginate(1);
+        });
     }
 
-    return init();
+    return init(domr);
 };

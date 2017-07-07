@@ -2,56 +2,177 @@ FW.components.Form = function(domr) {
 
     "Use Strict";
 
-    var Form = Form || {};
+    var Form = Form || {};    
 
-    Form.domr = $(domr);
+    var loadId
 
-    function init()
-    {
-        $(document).ready(function($) {
-            scan();
-        });
+    function init(domr)
+    {        
+        Form = FW.components.Component(Form, domr);
+
+        if (!Form.getModule()) return;
+
+        loadId = Form.domr.attr('fw-load');
+
+        scan();
+
+        if (loadId)
+            Form.load(loadId);
+
+        FW.registerComponent('form', Form);
 
         return Form;
     };
 
-    var module = FW.getModule(Form.domr.attr('fw-controller'));
+    Form.load = function( id, callbacks ) {
 
-    function getFilledObject() {
+        Form.clean();
 
-        var inputs = [];
+        if (!callbacks)
+            callbacks = [];
+
+        if (!callbacks.hasOwnProperty('beforeSend')) {
+            callbacks['beforeSend'] = function( xhr ) {
+                Form.disableButtons();
+            };
+        }
+
+        if (!callbacks.hasOwnProperty('done')) {
+            callbacks['done'] = function (xhr) {
+                Form.fill(xhr);
+            };
+        }
+
+        if (!callbacks.hasOwnProperty('always')) {
+            callbacks['always'] = function (xhr) {
+                Form.enableButtons();
+            };
+        }
+
+        FW.helpers.Rest.get(Form.getModule().config.controller, callbacks, id);
+    };
+
+    Form.disableButtons = function() {
+        Form.domr.find('button').prop("disabled",true);
+    };
+
+    Form.enableButtons = function() {
+        Form.domr.find('button').prop("disabled",false);
+    };
+
+    Form.fill = function ( obj ) {
+
+        for (var field in obj) {
+            Form.domr.find('input').each(function() {
+                if ($(this).attr('name') == field)
+                    $(this).val(FW.helpers.Parser.parse(Form.getModule(), $(this).attr('fw-parse'), obj, $(this).attr('name')));
+            });
+
+            Form.domr.find('textarea').each(function() {
+                var id = $(this).attr('id');
+                var name = $(this).attr('name');
+                if (!id) return;
+
+                if (CKEDITOR && CKEDITOR.instances.hasOwnProperty(id))
+                    CKEDITOR.instances[id].setData(obj[name]);
+            });
+
+            Form.domr.find('select').each(function() {
+                if ($(this).attr('name') == field) {
+
+                    var combo = FW.getRegisteredComponent('combo', $(this));   
+
+                    if (!combo) return;
+                    combo.setValue(obj[field]);
+                }
+            });
+        }
+    };
+
+    Form.clean = function() {
 
         Form.domr.find('input').each(function() {
-            inputs.push(this);
-        });
-
-        Form.domr.find('select').each(function() {
-            inputs.push(this);
+            if ($(this).attr('type') != 'hidden')
+                $(this).val('');
         });
 
         Form.domr.find('textarea').each(function() {
-            inputs.push(this);
+            var input = $(this);
+            if (CKEDITOR && CKEDITOR.instances.hasOwnProperty(input.attr('id')))
+                CKEDITOR.instances[input.attr('id')].setData('');
+            else
+                input.val('');
         });
+
+        Form.domr.find('select').each(function() {
+
+            var combo = FW.getRegisteredComponent('combo', $(this));
+
+            if (!combo) return;
+
+            if ($(this).attr('fw-reference'))
+                combo.clean();
+
+            var options = $(this).find('option');
+
+            if (options.length == 2)
+                $(options[1]).attr('selected', 'selected');
+            else
+                $(this).val('');
+        });
+    };
+
+    Form.getFilledObject = function() {
 
         var obj = {};
 
-        for (i in inputs) {
-            obj[inputs[i].name] = $(inputs[i]).val();
-        }
+        Form.domr.find('input, select').each(function() {
+            var input = $(this);
+            obj[input[0].name] = (input.parent().data('provide') == 'datepicker')?
+                dateDBFormat(input.val())
+                : input.val();
+        });
+
+        Form.domr.find('textarea').each(function() {
+            var input = $(this);
+            obj[input[0].name] = (CKEDITOR && CKEDITOR.instances.hasOwnProperty(input.attr('id'))) ? CKEDITOR.instances[input.attr('id')].getData() : input.val();
+        });
 
         return obj;
     }
 
+    Form.refresh = function() {
+        Form.domr.find('select').each(function() {
+            var value = $(this).val();
+            var combo = FW.getRegisteredComponent('combo', $(this));
+
+            if (!combo) return;
+            combo.load({'done': function (xhr) {
+                combo.clean().fill(xhr).setValue(value);
+            }});
+        });
+
+        var idHidden = Form.domr.find('input[type="hidden"][name="id"]');
+        if (idHidden.length)
+            Form.load(idHidden.val());
+    }
+
     function scan() {
-
-        Form.domr.find("button[fw-action='store']").on('click', function() {
-            module.actions.store(getFilledObject());
-        });
-
-        Form.domr.find("button[fw-action='update']").on('click', function() {
-            module.actions.update(getFilledObject());
-        });
+        
     };
 
-    return init();
+    function dateDBFormat(date) {
+
+        var parts = date.split(' ');
+        var dateParts = parts[0].split('/');
+
+        var dia = dateParts[0];
+        var mes = dateParts[1];
+        var ano = dateParts[2];
+        var hora = (parts.length > 1)? ' ' + parts[1] : '';
+
+        return ano + '-' + mes + '-' + dia + hora;
+    }
+
+    return init(domr);
 };

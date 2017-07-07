@@ -13,31 +13,50 @@ FW.helpers.Parser = (function($, FW) {
             || (module.parsers.hasOwnProperty(parser) && typeof module.parsers[parser] == 'function');
     };
 
-    Parser.parse = function (module, parser, source) {
-        if (!module || !parser || !source)
-            return '';
+    Parser.parse = function (module, parser, obj, path) {
 
-        if (module.parsers.hasOwnProperty(parser) && typeof module.parsers[parser] == 'function')
-            return module.parsers[parser](source);
+        var fullObj = obj;
+        var propParts = path.split('.');
 
-        if (Parser.hasOwnProperty(parser) && typeof Parser[parser] == 'function')
-            return Parser[parser](source);
+        for (part in propParts) {
+            if (obj && obj.hasOwnProperty(propParts[part]))
+                obj = obj[propParts[part]];
+        }
+
+        if (!parser)
+            return obj;
+
+        var parserParts = parser.split(' ');
+        var parsed = obj;
+
+        for (var p in parserParts) {
+            var _parser = parserParts[p];
+
+            if (module && module.parsers.hasOwnProperty(_parser) && typeof module.parsers[_parser] == 'function')
+                parsed = module.parsers[_parser](fullObj, parsed);
+
+            if (Parser.hasOwnProperty(_parser) && typeof Parser[_parser] == 'function')
+                parsed = Parser[_parser](fullObj, parsed);
+        }
+
+        return parsed;
     };
 
-    Parser.show = function(obj) {
+    Parser.show = function(fullObj, obj) {
         if (!obj)
             return '';
 
         var link = $(document.createElement('a'));
         link.attr('href', 'javascript:;');
         link.html(obj);
-        link.attr('fw-id', obj);
+        link.attr('fw-action', 'show');
+        link.attr('fw-id', fullObj.id);
 
         return link;
     };
 
-    Parser.dateFormat = function(obj) {
-        if (!obj)
+    Parser.dateFormat = function(fullObj, obj) {
+        if (!obj || typeof obj != 'string')
             return '';
 
         var parts = obj.split(' ');
@@ -54,20 +73,36 @@ FW.helpers.Parser = (function($, FW) {
         return obj;
     };
 
-    Parser.date = function(obj) {
-        return Parser.dateFormat(obj).split(' ')[0];
+    Parser.dateTime = Parser.dateFormat;
+    Parser.datetime = Parser.dateFormat;
+
+    Parser.date = function(fullObj, obj) {
+        return Parser.dateFormat(fullObj, obj).split(' ')[0];
     };
 
-    Parser.uppercase = function(obj) {
+    Parser.uppercase = function(fullObj, obj) {
         return (obj)? obj.toUpperCase() : null;
     };
 
-    Parser.lowercase = function(obj) {
+    Parser.lowercase = function(fullObj, obj) {
         return (obj)? obj.toLowerCase() : null;
     };
 
-    Parser.bool = function(obj) {
+    Parser.bool = function(fullObj, obj) {
         return (obj == 'true' || obj == true || obj == 1)? 'SIM' : 'NÃO';
+    };
+
+    Parser.modalShow = function(fullObj, obj) {
+        if (!obj)
+            return '';
+
+        var link = $(document.createElement('a'));
+        link.attr('href', 'javascript:;');
+        link.html(obj);
+        link.attr('fw-action', 'modalShow');
+        link.attr('fw-id', fullObj.id);
+
+        return link;
     };
 
     return init();

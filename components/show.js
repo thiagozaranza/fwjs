@@ -1,80 +1,62 @@
-FW.components.Show = function(domr) {
-
-    "Use Strict";
+FW.components.Show = function ( domr ) {
+    "use strict";
 
     var Show = Show || {};
 
-    Show.domr = $(domr);
-    Show.id = Show.domr.attr('fw-id');
-    Show.controller = Show.domr.attr('fw-controller');
+    function init(domr) {  
 
-    var module = FW.getModule(Show.controller);
+        Show = FW.components.Component(Show, domr);      
 
-    function init() {
+        if (!Show.getModule()) return;
 
-        $(document).ready(function($) {
+        Show.load(Show.domr.attr("fw-id"));
 
-
-            Show.load();
-        });
+        FW.registerComponent("show", Show);
 
         return Show;
     };
 
-    function fill(obj) {
-
+    Show.fill = function( obj ) {
         Show.domr.find("[fw-field]").each(function() {
+            $(this).html(
+                FW.helpers.Parser.parse(Show.getModule(), $(this).attr("fw-parse"), obj, $(this).attr("fw-field"))
+            );
+        });
 
-            var propParts = $(this).attr('fw-field').split('.');
-            var source = obj;
+        Show.domr.find("[fw-component]").each(function() {            
+            var type = $(this).attr("fw-component");
+            var component = FW.getRegisteredComponent(type, $(this));
 
-            for (part in propParts) {
-                if(source && propParts.hasOwnProperty(part))
-                    source = source[propParts[part]];
-            }
+            if (!component) return;                
+            
+            if (Show.getController() && !component.getController())
+                component.setController(Show.getController());
 
-            var parser = $(this).attr('fw-parse');
-
-            if (parser && FW.helpers.Parser.isValid(module, parser))
-                source = FW.helpers.Parser.parse(module, parser, source);
-
-            $(this).html(source);
+            for (var item in obj) {
+                if (component.getAttr("name") == item)
+                    component.clean().setValue(obj[item]);
+            }            
         });
     };
 
-    Show.load = function() {
+    Show.load = function( id, callbacks ) {
+        if (!id) return;
 
-        var data = {};
+        Show.id = id;
 
-        var url = FW.config.url;
+        if (!callbacks)
+            callbacks = [];
 
-        if (Show.domr.attr('fw-url'))
-            url = Show.domr.attr('fw-url');
+        if (!callbacks.hasOwnProperty("done")) {
+            callbacks["done"] = function( xhr ) {
+                Show.fill(xhr);                
+                if (Show.getModule().callbacks.hasOwnProperty("showDone") && typeof Show.getModule().callbacks.showDone == "function")
+                    Show.getModule().callbacks.showDone(xhr);
+            };
+        }
 
-        var jwt = FW.getJWT();
-        if (jwt)
-            data['jwt'] = jwt;
-
-        $.ajax({
-            url: url + '/' + Show.controller + '/' + Show.id ,
-            method: "GET",
-            context: document.body,
-            data: data,
-            accepts: {
-                json: 'application/json'
-            },
-            dataType: 'json',
-            beforeSend: function( xhr ) {
-
-            }
-        }).done(function(xhr) {
-            fill(xhr);
-        }).fail(function(xhr, textStatus) {
-
-        }).always(function(xhr) {
-
-        });
+        FW.helpers.Rest.get(Show.getModule().config.controller, callbacks, Show.id);
     };
 
-    return init();
+    return init(domr);
 };

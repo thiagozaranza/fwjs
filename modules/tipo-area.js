@@ -5,20 +5,13 @@ FW.modules.TipoArea = (function($, FW) {
     var TipoArea = TipoArea || {};
 
     TipoArea.config = {
-        controller: 'tipo-area'
+        controller: 'tipo-area',
+        name: 'Tipo Área'
     };
 
     function init()
     {
         TipoArea = FW.components.Module($, TipoArea);
-
-        $(document).ready(function($) {
-            FW.scan();
-        });
-
-        TipoArea.actions.jonaneto = function(domr) {
-            alert ('O pombão!' + domr.attr('fw-id'));
-        }
 
         return TipoArea;
     };
