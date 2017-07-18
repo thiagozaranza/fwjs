@@ -142,9 +142,7 @@ FW.helpers.Rest = (function($, FW) {
             $.ajax({
                 url: FW.config.url + '/' + module.config.controller + '/' + obj.id,
                 method: "DELETE",
-                data: {
-                    _token: obj._token
-                },
+                data: obj,
                 context: document.body,
                 accepts: {
                     json: 'application/json'

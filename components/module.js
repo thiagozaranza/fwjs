@@ -95,7 +95,7 @@ FW.components.Module = function($, module) {
                     id: 'modal-edit-' + module.config.controller,
                     title: 'Editar ' + module.config.name,
                     url: module.config.controller + '/modal/edit-form',
-                    actionButtons: [ 'updateSave' ]
+                    actionButtons: [ "updateSave"]
                 });
             }
             module.modalEdit.open(obj);

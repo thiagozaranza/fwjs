@@ -106,7 +106,5 @@ FW.components.Upload = function ( domr ) {
       return button;
     };
 
-    return init(domr);
-
-    
+    return init(domr);    
 };
