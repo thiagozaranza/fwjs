@@ -1,6 +1,6 @@
 window.FW = {
     config: {
-        url: location.href.split('/public')[0] + '/public'
+        url: location.href.split('/public')[0] + '/public/admin'
     },
     modules: [],
     components: [],

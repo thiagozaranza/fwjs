@@ -65,16 +65,102 @@ FW.components.Grid = function(domr) {
         Grid.paginate(getPage());
     };
 
-    Grid.paginate = function( page ) {
+    function getWithList() {
+
+        var withList = [];
+
+        var columns = getColumns();
+
+        for (var item in columns) {
+
+            var withParts = columns[item].name.split('.');
+
+            if (withParts.length == 2)
+                withList.push(withParts[0]);
+            else if (withParts.length == 3)
+                withList.push(withParts[0] + '.' + withParts[1]);
+            else if (withParts.length == 4)
+                withList.push(withParts[0] + '.' + withParts[1] + '.' + withParts[2]);
+            else if (withParts.length == 5)
+                withList.push(withParts[0] + '.' + withParts[1] + '.' + withParts[2] + '.' + withParts[3]);
+            else if (withParts.length == 6)
+                withList.push(withParts[0] + '.' + withParts[1] + '.' + withParts[2] + '.' + withParts[3] + '.' + withParts[4]);
+        }
+
+        return withList.join(',');
+    }
+
+    Grid.download = function() {
+        var data = {};
+               
+        data['jwt'] = FW.getJWT();
+        data['with'] = getWithList();
+        data['orderBy'] = getOrder(); 
+        data['download'] = true;
+        
+        $.extend(data, getFilters());
+
+        var callbacks = {            
+            'done': function(xhr) {
+                if (xhr.hasOwnProperty('message'))
+                    alert(xhr.message);
+            },
+            'fail': function(xhr, textStatus) {
+                if (xhr.hasOwnProperty('message'))
+                    alert(xhr.message);
+            }            
+        };
+
+        request(data, 'text/csv', callbacks);
+    }
+
+    Grid.paginate = function (page) {
 
         var data = {};
-
+        
         data['page'] = page;
         data['orderBy'] = getOrder();
         data['limit'] = getLimit();
         data['jwt'] = FW.getJWT();
-
+        data['with'] = getWithList();
+        
         $.extend(data, getFilters());
+
+        var callbacks = {
+            'before': function() {
+                beforeSend();
+            },
+            'done': function(xhr) {
+                if (Grid.getModule() && Grid.getModule().callbacks.hasOwnProperty('paginateDone') && typeof Grid.getModule().callbacks['paginateDone'] == 'function')
+                    Grid.getModule().callbacks['paginateDone'](xhr);
+
+                if (xhr.hasOwnProperty('list'))
+                    renderTable(xhr.list);
+
+                if (xhr.hasOwnProperty('paginator'))
+                    renderPaginator(xhr.paginator);
+
+            },
+            'fail': function(xhr, textStatus) {
+                if (Grid.getModule().callbacks.hasOwnProperty('paginateFail') && typeof Grid.getModule().callbacks['paginateFail'] == 'function')
+                    Grid.getModule().callbacks['paginateFail'](xhr);
+                else if (xhr.status == 401)
+                    alert('Operação não autorizada! Verifique se seu login expirou.');
+                else
+                    alert(textStatus);
+            },
+            'always': function(xhr) {
+                if (Grid.getModule() && Grid.getModule().callbacks.hasOwnProperty('paginateAlways') && typeof Grid.getModule().callbacks['paginateAlways'] == 'function')
+                    Grid.getModule().callbacks['paginateAlways'](xhr);
+                else
+                    paginateDone();
+            }
+        };
+
+        request(data, 'application/json', callbacks);
+    };
+
+    function request (data, accept, callbacks) {
 
         var url = (Grid.domr.attr('fw-url'))? Grid.domr.attr('fw-url') : FW.config.url;
 
@@ -84,36 +170,24 @@ FW.components.Grid = function(domr) {
             context: document.body,
             data: data,
             accepts: {
-                json: 'application/json'
+                json: accept
             },
             dataType: 'json',
             beforeSend: function(xhr) {
-                beforeSend();
+                if (callbacks.hasOwnProperty('before'))
+                    callbacks['before']();
             }
         }).done(function(xhr) {
-            if (Grid.getModule() && Grid.getModule().callbacks.hasOwnProperty('paginateDone') && typeof Grid.getModule().callbacks['paginateDone'] == 'function')
-                Grid.getModule().callbacks['paginateDone'](xhr);
-
-            if (xhr.hasOwnProperty('list'))
-                renderTable(xhr.list);
-
-            if (xhr.hasOwnProperty('paginator'))
-                renderPaginator(xhr.paginator);
-
+            if (callbacks.hasOwnProperty('done'))
+                callbacks['done'](xhr);
         }).fail(function(xhr, textStatus) {
-            if (Grid.getModule().callbacks.hasOwnProperty('paginateFail') && typeof Grid.getModule().callbacks['paginateFail'] == 'function')
-                Grid.getModule().callbacks['paginateFail'](xhr);
-            else if (xhr.status == 401)
-                alert('Operação não autorizada! Verifique se seu login expirou.');
-            else
-                alert(textStatus);
+            if (callbacks.hasOwnProperty('fail'))
+                callbacks['fail'](xhr, textStatus);
         }).always(function(xhr) {
-            if (Grid.getModule() && Grid.getModule().callbacks.hasOwnProperty('paginateAlways') && typeof Grid.getModule().callbacks['paginateAlways'] == 'function')
-                Grid.getModule().callbacks['paginateAlways'](xhr);
-            else
-                paginateDone();
+            if (callbacks.hasOwnProperty('always'))
+                callbacks['always'](xhr);
         });
-    };
+    }
 
     function beforeSend () {
         Grid.table.find('tr').css('opacity', 0.3);
@@ -132,12 +206,22 @@ FW.components.Grid = function(domr) {
         if (form.length) {
             var fields = form.serializeArray();
             for (var item in fields) {
-                var op = 'EQ';
-                if (form.find('[name="'+fields[item].name+'"]')[0].localName == 'input')
-                    op = 'LK';
+
+                var name = fields[item].name;
+                var nameParts = fields[item].name.split('.');
+                
+                if (nameParts.length == 1) {
+                    if (form.find('[name="'+fields[item].name+'"]')[0].localName == 'input')
+                        op = 'LK';
+                    else 
+                        op = 'EQ';
+                } else {
+                    name = nameParts[0];
+                    op = nameParts[1];
+                } 
 
                 if (fields[item].value && fields[item].value != 'Carregando opções...')
-                    filters[fields[item].name + '.' + op] = fields[item].value;
+                    filters[name + '.' + op] = fields[item].value;
             }
         }
 
@@ -180,6 +264,9 @@ FW.components.Grid = function(domr) {
         var thOp = Grid.table.find('th[fw-col-buttons]');
 
         var operationsDef = thOp.attr('fw-col-buttons');
+
+        if (!operationsDef)
+            return;
 
         operationsParts = operationsDef.split(' ');
         operationsParts.reverse();
@@ -323,11 +410,12 @@ FW.components.Grid = function(domr) {
                     id = list[item].codigo;
 
                 op.attr('fw-id', id);
-
+                
                 tdOperations.append(op);
-            }
-
-            tr.append(tdOperations.clone());
+            }            
+            
+            if (operations && operations.length > 0)
+                tr.append(tdOperations.clone());
 
             body.append(tr);
         };
@@ -436,7 +524,7 @@ FW.components.Grid = function(domr) {
             })
         });
 
-        Grid.domr.find('form').find('select').each(function() {
+        Grid.domr.find('form').find('select, input').each(function() {
             $(this).on('change', function( event ) {
                 event.preventDefault();
                 Grid.domr.find('form').find('button[fw-action="erase-filters"]').show();
@@ -453,6 +541,13 @@ FW.components.Grid = function(domr) {
             });
             $(this).hide();
             Grid.paginate(1);
+        });
+
+        Grid.domr.find("button[fw-action='download']").each(function() {
+            $(this).on('click', function( event ) {
+                event.preventDefault();                
+                Grid.download();
+            });
         });
     }
 
