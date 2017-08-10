@@ -439,12 +439,13 @@ FW.components.Grid = function(domr) {
         if (!paginator.total)
             return;
 
-        Grid.table.parent().append('<div class="row paginator">'
-            + '<div class="col-sm-4 col-md-2 col-lg-2 paginator-info" style="margin-top: 15px;"></div>'
-            + '    <div class="col-sm-6 col-md-8 col-lg-9">'
+        Grid.table.parent().append(
+              '<div class="row paginator">'
+            + '     <div class="col-xs-2 col-sm-2 col-md-2 col-lg-1 paginator-info" style="margin-top: 15px; padding-right: 0px"></div>'
+            + '     <div class="col-xs-8 col-sm-8 col-md-8 col-lg-10" style="" >'
             + '         <div class="text-center"><nav><ul class="pagination"></ul></nav></div>'
             + '     </div>'
-            + '     <div class="col-sm-2 col-md-2 col-lg-1 paginator-options" style="padding-left: 0px">'
+            + '     <div class="col-xs-2 col-sm-2 col-md-2 col-lg-1 paginator-options" style="padding-left: 0px">'
             + '         <div class="form-group">'
             + '             <label>Limite:</label>'
             + '             <select class="form-control grid-limit" style="width: 75px;">'
@@ -456,7 +457,7 @@ FW.components.Grid = function(domr) {
             + '                 <option>100</option>'
             + '             </select>'
             + '         </div>'
-            + '     </div>'
+            + '     </div>'            
             + '</div>');
 
         Grid.domr.find('.grid-limit').val(paginator.limit).on('change', function() {
@@ -538,6 +539,7 @@ FW.components.Grid = function(domr) {
             });
             Grid.domr.find('form').find('select').each(function() {
                 $(this).val('');
+                $(this).selectpicker('refresh');
             });
             $(this).hide();
             Grid.paginate(1);

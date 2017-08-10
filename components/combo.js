@@ -11,6 +11,12 @@ FW.components.Combo = function(domr) {
     function init(domr) {
 
         Combo = FW.components.Component(Combo, domr);
+
+        domr.attr('data-live-search', "true");
+        domr.selectpicker({
+          style: 'btn-default',
+          size: 8
+        });
        
         if (!Combo.getController()) return;
 
@@ -80,7 +86,7 @@ FW.components.Combo = function(domr) {
     };
 
     Combo.clean = function () {
-        Combo.domr.find('option').remove();
+        Combo.domr.find('option').remove();        
         loaded = false;
         return Combo;
     };
@@ -123,7 +129,7 @@ FW.components.Combo = function(domr) {
                 var interval = window.setInterval(function() {  
                     var referenceValue = Combo.reference.val();
                     if (referenceValue != loadingText) {
-                        data[Combo.reference.attr('name') + '.EQ'] = referenceValue;                        
+                        data[Combo.reference.attr('name') + '.EQ'] = referenceValue;                                                
                         clearInterval(interval);
                     }                    
                 }, 100);
@@ -140,6 +146,7 @@ FW.components.Combo = function(domr) {
 
         if (Combo.isLoaded()) {
             $(Combo.domr).val(value);
+            domr.selectpicker('refresh');
         } else {
 
             var referenceValue = (Combo.reference)? Combo.reference.val() : null; 
@@ -148,6 +155,7 @@ FW.components.Combo = function(domr) {
                 var interval = window.setInterval(function () {
                     if (Combo.isLoaded()) {
                         $(Combo.domr).val(value);
+                        domr.selectpicker('refresh');
                         clearInterval(interval);
                     }
                 }, 100);
@@ -159,6 +167,7 @@ FW.components.Combo = function(domr) {
                         var interval2 = window.setInterval(function() {
                             if ($(Combo.domr).val() != loadingText) {
                                 $(Combo.domr).val(value);
+                                domr.selectpicker('refresh');
                                 clearInterval(interval2);
                             }
                         }, 100);                        
@@ -170,6 +179,7 @@ FW.components.Combo = function(domr) {
                 var interval2 = window.setInterval(function() {
                     if ($(Combo.domr).val() != loadingText) {
                         $(Combo.domr).val(value);
+                        domr.selectpicker('refresh');
                         clearInterval(interval2);
                     }
                 }, 100);
@@ -182,10 +192,11 @@ FW.components.Combo = function(domr) {
                        var interval2 = window.setInterval(function() {
                             if ($(Combo.domr).val() != loadingText) {
                                 $(Combo.domr).val(value);
+                                domr.selectpicker('refresh');
                                 clearInterval(interval2);
                             }
                         }, 100); 
-                        Combo.load();
+                        Combo.load();                        
                         clearInterval(interval);
                     }
                     
