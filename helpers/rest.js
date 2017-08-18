@@ -68,7 +68,7 @@ FW.helpers.Rest = (function($, FW) {
             if (callbacks.hasOwnProperty('done'))
                 callbacks['done'](xhr, textStatus);
         }).fail(function(xhr, textStatus) {
-            if (callbacks.hasOwnProperty('done'))
+            if (callbacks.hasOwnProperty('fail'))
                 callbacks['fail'](xhr, textStatus);
         }).always(function(xhr) {
             if (callbacks.hasOwnProperty('always'))

@@ -5,15 +5,7 @@ window.FW = {
     modules: [],
     components: [],
     helpers: [],
-    registry: {
-        button: [],
-        combo: [],
-        form: [],
-        grid: [],
-        show: [],
-        modal: [],
-        upload: []
-    },
+    registry: {},
 
     actionButtons: {
         storeSave: {
@@ -51,10 +43,32 @@ window.FW = {
             attrs: {                    
                 'fw-action': 'modalEdit',
             }            
-        }       
+        },
+        modalAdd: {        
+            align: 'right',
+            color: 'primary',
+            icon: 'plus',
+            text: 'Adicionar',
+            attrs: {                    
+                'fw-action': 'modalAdd',
+            }            
+        },
+        add: {        
+            align: 'right',
+            color: 'primary',
+            icon: 'plus',
+            text: 'Adicionar',
+            attrs: {                    
+                'fw-action': 'add',
+                'data-dismiss': 'modal'
+            }            
+        }    
     },
 
     registerComponent: function ( type, component ) {
+        if (!FW.registry.hasOwnProperty(type))
+            FW.registry[type] = [];
+
         if (!FW.getRegisteredComponent(type, component.domr))
             FW.registry[type].push(component);
     },
@@ -99,6 +113,16 @@ window.FW = {
         return params;
     },
 
+    broadcast: function (title, msg) {
+        for (var item in FW.registry) {
+            for (var component in FW.registry[item]) {
+                if (FW.registry[item][component].waiting(title)) {
+                    FW.registry[item][component].execute(msg);
+                }
+            }
+        }
+    },
+
     scan: function(domr) {
 
         if (!domr)
@@ -123,7 +147,7 @@ window.FW = {
 
         domr.find("[fw-component='grid']").each(function() {
             new FW.components.Grid($(this));
-        });
+        });        
 
         domr.find("[fw-component='show']").each(function() {
             new FW.components.Show($(this));
@@ -136,18 +160,15 @@ window.FW = {
         domr.find("button, a").each(function() {
             new FW.components.Button($(this));
         });
+
+        domr.find("[fw-component='add']").each(function() {
+            new FW.components.Add($(this));
+        });
     },
 
     clean: function() {
 
-        FW.registry = {
-            button: [],
-            combo: [],
-            form: [],
-            grid: [],
-            show: [],
-            modal: []
-        };
+        FW.registry = {};
 
         return FW.registry;
     }

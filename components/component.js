@@ -5,6 +5,7 @@ FW.components.Component = function(component, domr) {
     component.domr = domr;  
     component._controller;
     component._module;
+    component._waiting;
 
     if (!component.hasOwnProperty('setController')) {
         component.setController = function(controller) {      
@@ -40,6 +41,22 @@ FW.components.Component = function(component, domr) {
             return component._module;        
         return FW.getModule(component.getController());    
     };
+
+    component.wait = function(title, action) {
+        component._waiting = {
+            title: title,
+            action: action
+        };
+    };
+
+    component.waiting = function(title) {
+        return component.hasOwnProperty('_waiting') && component._waiting.hasOwnProperty('title') && component._waiting.title == title;
+    };
+
+    component.execute = function(params) {
+        if (component._waiting.hasOwnProperty('action') && typeof component._waiting.action == 'function')
+            component._waiting.action(params);
+    }
 
     return component; 
 };    

@@ -7,6 +7,7 @@ FW.components.Modal = function(config) {
     Modal.config = config;
 
     var content;
+    var form;
 
     function init() {
 
@@ -14,7 +15,8 @@ FW.components.Modal = function(config) {
 
         var modalRegistered = FW.getRegisteredComponent('modal', Modal.domr);
         
-        if (modalRegistered) return modalRegistered;
+        if (modalRegistered) 
+            return modalRegistered;
         
         FW.registerComponent('modal', Modal);
 
@@ -93,13 +95,34 @@ FW.components.Modal = function(config) {
                     var action = $(this).attr('fw-action');
 
                     if (Modal.domr.find('form').length) {
+                        var module = null;                        
+                        var obj = null;
+
                         var form = FW.getRegisteredComponent('form', Modal.domr.find('form'));
-                        if (!form) return;
-                        var module = FW.getModule(form.getController());
+
+                        if (form) {
+                            module = FW.getModule(form.getController());
+                            obj = form.getFilledObject();
+                        } else {
+                            var gridComponent = FW.getRegisteredComponent('grid', Modal.domr.find('div[fw-component="grid"]'));
+                            module = FW.getModule(gridComponent.getController());
+                            obj = {
+                                controller: gridComponent.getController(),
+                                list: gridComponent.checkedList
+                            };
+
+                            var addComponent = FW.getRegisteredComponent('add', Modal.domr.find('div[fw-component="add"]')); 
+
+                            if (addComponent) {
+                                obj['parentController'] = addComponent.parentController;
+                                obj['parentId'] = addComponent.parentId;
+                            }
+                        }
+
                         if (!module) return;
 
                         if (module.actions.hasOwnProperty(action) && typeof module.actions[action] == 'function')
-                            module.actions[action](form.getFilledObject());
+                            module.actions[action](obj);
                     }
                 });
             }
@@ -120,115 +143,140 @@ FW.components.Modal = function(config) {
 
     Modal.open = function( params ) {
 
-        var modalReference = FW.registry.modal[i];
-
         if (!isLoaded())
-            Modal.load({
-                beforeSend: function() {
-                    for (var i in FW.registry.modal) {
-                        if (FW.registry.modal[i].isOpened()) {
-                            modalReference = FW.registry.modal[i];
-                            $(modalReference.domr).attr('z-index', $(modalReference.domr).attr('z-index')-10);
-                        }
-                    };
-                },
+            Modal.load({                
                 done: function() {
-                    $(Modal.domr).find('form').each(function() {
-                        for (var key in params) {
-                            $(this).append('<input type="hidden" name="' + key + '" value="' + params[key] + '" />');
-                        }
-                    });
-
-                    $(Modal.domr).find('[fw-component="show"]').each(function() {
-                        if (params.hasOwnProperty('id'))
-                            $(this).attr('fw-id', params.id);
-                    });
-
-                    $(Modal.domr).find('button[fw-controller]').each(function() {
-                        var action = $(this).attr('fw-action');
-                        if (params.hasOwnProperty('id') && (action && action.indexOf('modal')))
-                            $(this).attr('fw-id', params.id);
-                    });
-
                     $(Modal.domr)
-                        .off('shown.bs.modal')                                                
-                        .on('shown.bs.modal', function (e) {
-                            var inputs = $(this).find('input, select');
-                            if (inputs.length > 0)
-                                inputs[0].focus();
+                        .off('shown.bs.modal').on('shown.bs.modal', function (evt) {
+                            onModalShown(evt);
                         })
-                        .off('hidden.bs.modal')
-                        .on('hidden.bs.modal', function (e) {                            
-                            $(Modal.domr).find('form').each(function() {
-                                var form = FW.getRegisteredComponent('form', $(this));
-                                if (form) ;
-                                    form.clean();
-                            });
-
-                            for (var i in FW.registry.modal) {
-                                if (FW.registry.modal[i].isOpened()) {
-                                    FW.registry.modal[i].refresh();                                    
-                                }
-                            };                            
+                        .off('hidden.bs.modal').on('hidden.bs.modal', function (evt) {                            
+                            onModalHidden(evt);                          
                         });
 
                     FW.scan($(Modal.domr));
 
-                    if ($(Modal.domr).find('[type="hidden"][name="id"]').length) {
-                        var formDOM = $(Modal.domr).find('form');
-                        if (formDOM.length) {
-                            var form = FW.getRegisteredComponent('form', formDOM);
-                            if (!form) return;
-                            var callbacks = [];
-                            callbacks['done'] = function(xhr) {
-                                form.fill(xhr);
-                                $(Modal.domr).modal('show');
-                            };
-                            form.load($(Modal.domr).find('[type="hidden"][name="id"]').val(), callbacks);
-                        }
-                    } else {
-                        $(Modal.domr).modal('show');
-                    }
+                    onModalReady(params);                    
                 }
             });
-        else {
-            for (var i in FW.registry.modal) {
-                if (FW.registry.modal[i].isOpened())
-                    modalReference = FW.registry.modal[i];
-            };
-
-            $(Modal.domr).find('button[fw-controller]').each(function() {
-                var action = $(this).attr('fw-action');
-                if (params.hasOwnProperty('id') && (action && action.indexOf('modal')))
-                    $(this).attr('fw-id', params.id);
-            });
-
-            $(Modal.domr).find('[fw-component="show"]').each(function() {
-                if (params.hasOwnProperty('id'))
-                    $(this).attr('fw-id', params.id);
-                FW.scan($(Modal.domr));
-            });
-
-            for (var key in params) {
-                $(Modal.domr).find('[name="' + key + '"]').val(params[key]);
-            }
-
-            if ($(Modal.domr).find('[type="hidden"][name="id"]').length) {
-                var formDOM = $(Modal.domr).find('form');
-                if (formDOM.length) {
-                    var form = FW.getRegisteredComponent('form', formDOM);
-                    var callbacks = [];
-                    callbacks['done'] = function(xhr) {
-                        form.fill(xhr);
-                        $(Modal.domr).modal('show');
-                    };
-                    form.load($(Modal.domr).find('[type="hidden"][name="id"]').val(), callbacks);
-                }
-            } else {
-                $(Modal.domr).modal('show');
-            }
-        }
+        else 
+            onModalReady(params);                    
     };
+
+    function show() {
+        $(Modal.domr).modal('show');   
+    }
+
+    function onModalShown(evt) {
+        var inputs = $(Modal.domr).find('input, select');
+        if (inputs.length > 0)
+            inputs[0].focus();
+    }
+
+    function onModalHidden(evt) {
+        $(Modal.domr).find('form').each(function() {
+            var form = FW.getRegisteredComponent('form', $(this));
+            if (form)
+                form.clean();
+        });
+
+        for (var i in FW.registry.modal) {
+            if (FW.registry.modal[i].isOpened()) {
+                //FW.registry.modal[i].refresh();                                    
+            }
+        };  
+    }
+
+    function onModalReady(params) {
+
+        sendParentModalsToBack();
+
+        appendHiddenParametersOnForms(params);
+
+        if (params.hasOwnProperty('id')) {
+            appendIdParameterOnShowComponents(params.id);
+            appendIdParameterOnModalButtons(params.id);
+        }
+        
+        if (hasForm()) {
+            if (hasIdHiddenOnForm())
+                loadForm();
+            else {
+                var form = getForm();
+                if (form)
+                    form.fill(params);
+                show();
+            }
+        } else {
+            show();         
+        }
+    }
+
+    function getForm() {
+        return FW.getRegisteredComponent('form', getFormDom());
+    }
+
+    function getFormDom() {
+        return $(Modal.domr).find('form');
+    }
+
+    function hasForm () {
+        return getFormDom().length;
+    }
+
+    function hasIdHiddenOnForm() {
+        return $(Modal.domr).find('[type="hidden"][name="id"]').length;
+    }
+
+    function loadForm() {
+
+        var form = FW.getRegisteredComponent('form', getFormDom());
+
+        if (!form) return;
+
+        var callbacks = [];
+        callbacks['done'] = function(xhr) {
+            form.fill(xhr);
+            show();
+        };
+
+        form.load($(Modal.domr).find('[type="hidden"][name="id"]').val(), callbacks);    
+    }
+
+    function sendParentModalsToBack() {
+        for (var i in FW.registry.modal) {
+            if (FW.registry.modal[i].isOpened()) {
+                var modalReference = FW.registry.modal[i];
+                $(modalReference.domr).attr('z-index', $(modalReference.domr).attr('z-index')-10);
+            }
+        };
+    }
+
+    function appendHiddenParametersOnForms(params) {
+        $(Modal.domr).find('form').each(function() {
+            for (var key in params) {
+                var hiddenParam = $(this).find('[type="hidden"][name="'+ key +'"]');
+                if (hiddenParam.length)
+                    hiddenParam.val(params[key]);
+                else 
+                    $(this).append('<input type="hidden" name="' + key + '" value="' + params[key] + '" />');
+            }
+        });
+    }
+
+    function appendIdParameterOnShowComponents(id) {
+        $(Modal.domr).find('[fw-component="show"]').each(function() {                        
+            $(this).attr('fw-id', id);
+        });
+    }
+
+    function appendIdParameterOnModalButtons(id) {
+        $(Modal.domr).find('button[fw-controller]').each(function() {
+            var action = $(this).attr('fw-action');
+            if (action && action.indexOf('modal'))
+                $(this).attr('fw-id', id);
+        });
+    }
 
     Modal.close = function() {
         $(Modal.domr).modal('hide');

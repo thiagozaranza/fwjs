@@ -4,6 +4,8 @@ FW.components.Button = function(domr) {
 
     var Button = Button || {};
 
+    Button.id = null;
+
     function init(domr) {
 
         Button = FW.components.Component(Button, domr);
@@ -11,6 +13,7 @@ FW.components.Button = function(domr) {
         if (FW.getRegisteredComponent('button', Button.domr))
             return;
 
+        Button.id = Button.domr.attr('id');
         Button.action = Button.domr.attr('fw-action');
         
         Button.domr.on('click', function ()
@@ -29,7 +32,7 @@ FW.components.Button = function(domr) {
                         }
                     });
                 });
-
+                
                 Button.getModule().actions[Button.action](obj);
             }
         });
@@ -92,9 +95,14 @@ FW.components.ButtonFactory = (function($, FW) {
             button.append(icon);
         }
 
-        if (config.hasOwnProperty('text')) {
-            button.append(config.text);
-        }
+        if (config.hasOwnProperty('controller')) 
+            button.attr('fw-controller', config.controller);
+        
+        if (config.hasOwnProperty('action')) 
+            button.attr('fw-action', config.action);
+
+        if (config.hasOwnProperty('text')) 
+            button.append(config.text);        
 
         return button;
     };

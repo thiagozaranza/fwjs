@@ -3,6 +3,9 @@ FW.components.Grid = function(domr) {
     "Use Strict";
 
     var Grid = Grid || {};
+
+    Grid.pageResponse;
+    Grid.checkedList = [];
     
     Grid.defaultOperations = {
         'edit': {
@@ -73,6 +76,9 @@ FW.components.Grid = function(domr) {
 
         for (var item in columns) {
 
+            if (!columns[item].name)
+                return;
+
             var withParts = columns[item].name.split('.');
 
             if (withParts.length == 2)
@@ -131,6 +137,9 @@ FW.components.Grid = function(domr) {
                 beforeSend();
             },
             'done': function(xhr) {
+
+                Grid.pageResponse = xhr;
+
                 if (Grid.getModule() && Grid.getModule().callbacks.hasOwnProperty('paginateDone') && typeof Grid.getModule().callbacks['paginateDone'] == 'function')
                     Grid.getModule().callbacks['paginateDone'](xhr);
 
@@ -177,7 +186,7 @@ FW.components.Grid = function(domr) {
                 if (callbacks.hasOwnProperty('before'))
                     callbacks['before']();
             }
-        }).done(function(xhr) {
+        }).done(function(xhr) {            
             if (callbacks.hasOwnProperty('done'))
                 callbacks['done'](xhr);
         }).fail(function(xhr, textStatus) {
@@ -241,19 +250,15 @@ FW.components.Grid = function(domr) {
 
     function getColumns() {
 
-        var head = Grid.table.find('thead');
-
         var columns = [];
 
-        head.find('th').each(function() {
-
-            var column = {};
-
-            column.name = $(this).attr('fw-col-name');
-            column.parse = $(this).attr('fw-parse');
-
-            if (column.name)
-                columns.push(column);
+        Grid.table.find('thead').find('th').each(function() {
+            columns.push({
+                name: $(this).attr('fw-col-name'),
+                parse: $(this).attr('fw-parse'),
+                widget: $(this).attr('fw-widget'),
+                buttons: $(this).attr('fw-col-buttons')                
+            });
         });
 
         return columns;
@@ -331,39 +336,46 @@ FW.components.Grid = function(domr) {
 
         Grid.table.find('th').each(function() {
 
-            var text = $(this).html();
+            var widget = $(this).attr("fw-widget");
 
-            $(this).html('<a class="ordenable" href="javascript:;">' + text + '</a>');
-            $(this).find('a').on('click', function() {
+            if (widget && widget == 'check') {                
+                $(this).html('<input type="checkbox" fw-id="all">');
+            } else {
 
-                var tr = $(this).parent();
-                var way = tr.attr('fw-order');
+                var text = $(this).html();
 
-                if (!way || way=='DESC')
-                    way = 'ASC';
-                else
-                    way = 'DESC';
+                $(this).html('<a class="ordenable" href="javascript:;">' + text + '</a>');
+                $(this).find('a').on('click', function() {
 
-                Grid.table.find('th[fw-order]').each(function() {
-                    if ($(this) !== tr)
-                        $(this).removeAttr('fw-order');
+                    var tr = $(this).parent();
+                    var way = tr.attr('fw-order');
+
+                    if (!way || way=='DESC')
+                        way = 'ASC';
+                    else
+                        way = 'DESC';
+
+                    Grid.table.find('th[fw-order]').each(function() {
+                        if ($(this) !== tr)
+                            $(this).removeAttr('fw-order');
+                    });
+
+                    Grid.table.find('.caret').each(function() {
+                        $(this).remove();
+                    });
+
+                    tr.attr('fw-order', way);
+
+                    if (way == 'DESC')
+                        $(this).addClass('dropup');
+                    else
+                        $(this).removeClass('dropup');
+
+                    $(this).append('<span class="caret"></span>');
+
+                    Grid.refresh();
                 });
-
-                Grid.table.find('.caret').each(function() {
-                    $(this).remove();
-                });
-
-                tr.attr('fw-order', way);
-
-                if (way == 'DESC')
-                    $(this).addClass('dropup');
-                else
-                    $(this).removeClass('dropup');
-
-                $(this).append('<span class="caret"></span>');
-
-                Grid.refresh();
-            });
+            }
         });
     };
 
@@ -394,9 +406,22 @@ FW.components.Grid = function(domr) {
             var tr = $(document.createElement('tr'));
 
             for (var col in columns) {
-                tr.append($(document.createElement('td')).append(
-                    FW.helpers.Parser.parse(Grid.getModule(), columns[col].parse, list[item], columns[col].name)
-                ));
+                if (columns[col].name)
+                    tr.append($(document.createElement('td')).append(                    
+                        FW.helpers.Parser.parse(Grid.getModule(), columns[col].parse, list[item], columns[col].name)
+                    ));
+
+                if (columns[col].widget == 'check') {
+                    var checkbox = $(document.createElement('input'))
+                        .attr('type', "checkbox")
+                        .attr('fw-id', list[item].id);
+                    
+                    if (Grid.checkedList.indexOf(list[item].id+"") != -1)
+                        checkbox.prop("checked", true);
+
+                    tr.append($(document.createElement('td'))
+                        .append(checkbox));                
+                }
             }
 
             var tdOperations = $(document.createElement('td'));
@@ -430,7 +455,85 @@ FW.components.Grid = function(domr) {
         });
 
         renderTh();
+
+        Grid.domr.find("input[type='checkbox']").each(function() {
+            $(this).on('change', function( event ) {
+                event.preventDefault(); 
+
+                var id = $(this).attr('fw-id');   
+
+                $(this).attr("checked", this.checked); 
+
+                if(this.checked)
+                    addToCheckedList(id);
+                else 
+                    removeFromCheckedList(id);
+            });
+        });
     };
+
+    function getPageItem (id) {
+        for (item in Grid.pageResponse.list) {
+            if (Grid.pageResponse.list[item].id == id)
+                return Grid.pageResponse.list[item];
+        }
+        return null;
+    }
+
+    function addToCheckedList(id) {
+        
+        if (id == 'all')
+            Grid.domr.find("input[type='checkbox']").each(function() {
+                var id = $(this).attr('fw-id');
+                if (id != 'all') {
+                    $(this).prop("checked", true);                      
+                    addToCheckedList(id);
+                }
+            });
+        else if (!inCheckedList(id)) {
+            Grid.checkedList.push(getPageItem(id));
+            checkAllTest();
+        }
+
+    }    
+
+    function removeFromCheckedList(id) {
+        
+        if (id == 'all')
+            Grid.domr.find("input[type='checkbox']").each(function() {
+                var id = $(this).attr('fw-id');
+                if (id != 'all') {
+                    $(this).prop("checked", false); 
+                    removeFromCheckedList(id);  
+                }
+            });
+        else if (inCheckedList(id)) {
+            Grid.checkedList.splice(Grid.checkedList.indexOf(getPageItem(id)), 1);   
+            checkAllTest();
+        }        
+    }
+
+    function checkAllTest() {
+        
+        var allChecked = true;        
+
+        $('tbody').find('[type="checkbox"]').each(function() {
+            if (!$(this).prop('checked')) {
+                allChecked = false;
+                return;                
+            }
+        });
+
+        $('thead').find('[type="checkbox"]').prop('checked', allChecked);
+    }       
+
+    function inCheckedList(id) {
+        for (item in Grid.checkedList) {
+            if (Grid.checkedList[item].id == id)
+                return true;
+        }   
+        return false;
+    }
 
     function renderPaginator( paginator ) {
 

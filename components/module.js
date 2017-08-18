@@ -78,6 +78,9 @@ FW.components.Module = function($, module) {
         destroy: function (obj) {
             FW.helpers.Rest.destroy(module, obj);
         },
+        add: function (obj) {
+            FW.broadcast('add-' + obj.controller, obj.list);
+        },
         modalCreate: function(obj) {
             if (!module.modalCreate) {
                 module.modalCreate = new FW.components.Modal({
@@ -110,6 +113,17 @@ FW.components.Module = function($, module) {
                 });
             }
             module.modalShow.open(obj);
+        },
+        modalAdd: function(obj) {
+            if (!module.modalAdd) {
+                module.modalAdd = new FW.components.Modal({
+                    id: 'modal-add-' + module.config.controller,
+                    title: 'Visualizar ' + module.config.name,
+                    url: module.config.controller + '/modal/add',
+                    actionButtons: [ 'add' ]
+                });
+            }
+            module.modalAdd.open(obj);
         }
     };
 

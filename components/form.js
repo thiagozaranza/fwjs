@@ -64,8 +64,21 @@ FW.components.Form = function(domr) {
 
         for (var field in obj) {
             Form.domr.find('input').each(function() {
-                if ($(this).attr('name') == field)
-                    $(this).val(FW.helpers.Parser.parse(Form.getModule(), $(this).attr('fw-parse'), obj, $(this).attr('name')));
+                var type = $(this).attr('type');                
+                if ($(this).attr('name') == field) {
+                    if (type == 'text') {
+                        $(this).val(FW.helpers.Parser.parse(Form.getModule(), $(this).attr('fw-parse'), obj, $(this).attr('name')));
+                    }
+                    else if (type == 'checkbox') { 
+                        if (obj[field] == 'true' || obj[field] == true || obj[field] == 1)
+                            $(this).prop('checked', true);
+                        else
+                            $(this).prop('checked', false);
+                    } 
+                    else if (type == 'hidden') {
+                        $(this).val(obj[field]);
+                    }
+                }
             });
 
             Form.domr.find('textarea').each(function() {
@@ -86,13 +99,26 @@ FW.components.Form = function(domr) {
                     combo.setValue(obj[field]);
                 }
             });
+
+            Form.domr.find('[fw-component="add"]').each(function() {
+                if ($(this).attr('name') == field) {
+                    var component = FW.getRegisteredComponent('add', $(this)); 
+                    if(!component) return;
+                    component.setValue(obj[field]);
+                }
+            });
         }
     };
 
     Form.clean = function() {
 
         Form.domr.find('input').each(function() {
-            if ($(this).attr('type') != 'hidden')
+            
+            var type = $(this).attr('type');
+
+            if (type == 'checkbox')
+                $(this).prop('checked', false);
+            else if (type != 'hidden')
                 $(this).val('');
         });
 
@@ -119,6 +145,14 @@ FW.components.Form = function(domr) {
                 $(options[1]).attr('selected', 'selected');
             else
                 $(this).val('');
+
+             combo.domr.selectpicker('refresh');
+        });
+
+        Form.domr.find('[fw-component="add"]').each(function() {
+            var component = FW.getRegisteredComponent('add', $(this));
+            if (component)
+                component.clean();
         });
     };
 
@@ -128,9 +162,13 @@ FW.components.Form = function(domr) {
 
         Form.domr.find('input, select').each(function() {
             var input = $(this);
-            obj[input[0].name] = (input.parent().data('provide') == 'datepicker')?
-                dateDBFormat(input.val())
-                : input.val();
+
+            if (input.parent().data('provide') == 'datepicker')
+                obj[input[0].name] = dateDBFormat(input.val());
+            else if (input[0].type == 'checkbox')
+                obj[input[0].name] = (input[0].checked)? true : false;
+            else         
+                obj[input[0].name] = input.val();
         });
 
         Form.domr.find('textarea').each(function() {
@@ -138,6 +176,10 @@ FW.components.Form = function(domr) {
             obj[input[0].name] = (CKEDITOR && CKEDITOR.instances.hasOwnProperty(input.attr('id'))) ? CKEDITOR.instances[input.attr('id')].getData() : input.val();
         });
 
+        Form.domr.find('[fw-component="add"]').each(function() {
+            var component = FW.getRegisteredComponent('add', $(this));
+            obj[component.name] = component.val();
+        });
         return obj;
     }
 

@@ -53,7 +53,7 @@ FW.components.Combo = function(domr) {
 
         if (references.length) {
             Combo.reference = $(references[0]);
-            Combo.reference.off('change').on('change', function() {
+            Combo.reference.on('change', function() {
                 Combo.load();                
             });
         }
@@ -77,6 +77,8 @@ FW.components.Combo = function(domr) {
                 Combo.domr.append('<option value="'+obj.list[i].id+'">'+obj.list[i].nome+'</option>');
         }
 
+        Combo.domr.selectpicker('refresh');
+
         loaded = true;
 
         if (obj.list.length == 1)
@@ -86,7 +88,8 @@ FW.components.Combo = function(domr) {
     };
 
     Combo.clean = function () {
-        Combo.domr.find('option').remove();        
+        Combo.domr.find('option').remove();    
+        Combo.domr.selectpicker('refresh');
         loaded = false;
         return Combo;
     };
