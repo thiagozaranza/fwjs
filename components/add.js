@@ -6,10 +6,15 @@ FW.components.Add = function(domr) {
 
     Add.list = [];
     Add.name;
+
+    var readOnly = false;
     
     function init(domr) {
 
         Add = FW.components.Component(Add, domr);
+
+        if (Add.domr.attr('fw-read-only') !== undefined)
+            readOnly = true;
 
         render();
         setButtonsListeners();
@@ -63,6 +68,8 @@ FW.components.Add = function(domr) {
 
     function render() {
 
+        Add.domr.find('table').remove();
+
         var table = $(document.createElement('table'));
 
         table.addClass('table table-condensed table-hover table-striped table-bordered');
@@ -96,11 +103,13 @@ FW.components.Add = function(domr) {
 
         tr.append(th);
 
-        var thButtons = $(document.createElement('th'));
-        thButtons.append(getAddButton());
-        tr.append(thButtons);
+        if (!readOnly) {
+            var thButtons = $(document.createElement('th'));
+            thButtons.append(getAddButton());
+            tr.append(thButtons);
 
-        thead.append(tr);
+            thead.append(tr);
+        }
 
         return thead;
     }
@@ -167,29 +176,32 @@ FW.components.Add = function(domr) {
 
             tr.append(td);
 
-            var tdOp = $(document.createElement('td'));
+            if (!readOnly) {
 
-            var removeButton = FW.components.ButtonFactory.make({
-                color: 'danger',
-                size: 'xs',
-                align: 'right',
-                icon: 'minus',
-                text: 'Remover',
-                controller: Add.getController(),
-                action: 'remove',
-                attrs: {
-                    'fw-id': Add.list[item].id                    
-                }
-            });
+                var tdOp = $(document.createElement('td'));
 
-            tdOp.append(removeButton);
+                var removeButton = FW.components.ButtonFactory.make({
+                    color: 'danger',
+                    size: 'xs',
+                    align: 'right',
+                    icon: 'minus',
+                    text: 'Remover',
+                    controller: Add.getController(),
+                    action: 'remove',
+                    attrs: {
+                        'fw-id': Add.list[item].id                    
+                    }
+                });
 
-            removeButton.on('click', function() {
-                Add.list.splice(Add.list.indexOf(getItem($(this).attr('fw-id'))), 1);
-                renderList();
-            });
+                tdOp.append(removeButton);
 
-            tr.append(tdOp);
+                removeButton.on('click', function() {
+                    Add.list.splice(Add.list.indexOf(getItem($(this).attr('fw-id'))), 1);
+                    renderList();
+                });
+
+                tr.append(tdOp);
+            }
 
             tbody.append(tr);
         }

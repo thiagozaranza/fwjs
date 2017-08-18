@@ -81,11 +81,11 @@ FW.helpers.Parser = (function($, FW) {
     };
 
     Parser.uppercase = function(fullObj, obj) {
-        return (obj)? obj.toUpperCase() : null;
+        return (obj && typeof obj == 'string')? obj.toUpperCase() : null;
     };
 
     Parser.lowercase = function(fullObj, obj) {
-        return (obj)? obj.toLowerCase() : null;
+        return (obj && typeof obj == 'string')? obj.toLowerCase() : null;
     };
 
     Parser.bool = function(fullObj, obj) {

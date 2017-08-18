@@ -154,8 +154,6 @@ FW.components.Modal = function(config) {
                             onModalHidden(evt);                          
                         });
 
-                    FW.scan($(Modal.domr));
-
                     onModalReady(params);                    
                 }
             });
@@ -197,6 +195,8 @@ FW.components.Modal = function(config) {
             appendIdParameterOnShowComponents(params.id);
             appendIdParameterOnModalButtons(params.id);
         }
+
+        FW.scan($(Modal.domr));
         
         if (hasForm()) {
             if (hasIdHiddenOnForm())
@@ -220,7 +220,7 @@ FW.components.Modal = function(config) {
         return $(Modal.domr).find('form');
     }
 
-    function hasForm () {
+    function hasForm() {
         return getFormDom().length;
     }
 
