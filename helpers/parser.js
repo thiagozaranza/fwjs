@@ -16,7 +16,7 @@ FW.helpers.Parser = (function($, FW) {
     Parser.parse = function (module, parser, obj, path) {
 
         var fullObj = obj;
-        var propParts = path.split('.');
+        var propParts = path.split('-');
 
         for (part in propParts) {
             if (obj && obj.hasOwnProperty(propParts[part]))

@@ -58,8 +58,8 @@ FW.components.Grid = function(domr) {
         if ($order.length) {
             var way = $order.attr('fw-order');
             var colName = $order.attr('fw-col-name');
-            if (colName.indexOf('.') > 0)
-                colName = colName.split('.')[0] + '_id';
+            if (colName.indexOf('-') > 0)
+                colName = colName.split('-')[0] + '_id';
             return colName + ',' + way;
         }
     };
@@ -77,20 +77,20 @@ FW.components.Grid = function(domr) {
         for (var item in columns) {
 
             if (!columns[item].name)
-                return;
+                continue;
 
-            var withParts = columns[item].name.split('.');
+            var withParts = columns[item].name.split('-');
 
             if (withParts.length == 2)
                 withList.push(withParts[0]);
             else if (withParts.length == 3)
-                withList.push(withParts[0] + '.' + withParts[1]);
+                withList.push(withParts[0] + '-' + withParts[1]);
             else if (withParts.length == 4)
-                withList.push(withParts[0] + '.' + withParts[1] + '.' + withParts[2]);
+                withList.push(withParts[0] + '-' + withParts[1] + '-' + withParts[2]);
             else if (withParts.length == 5)
-                withList.push(withParts[0] + '.' + withParts[1] + '.' + withParts[2] + '.' + withParts[3]);
+                withList.push(withParts[0] + '-' + withParts[1] + '-' + withParts[2] + '-' + withParts[3]);
             else if (withParts.length == 6)
-                withList.push(withParts[0] + '.' + withParts[1] + '.' + withParts[2] + '.' + withParts[3] + '.' + withParts[4]);
+                withList.push(withParts[0] + '-' + withParts[1] + '-' + withParts[2] + '-' + withParts[3] + '-' + withParts[4]);
         }
 
         return withList.join(',');
@@ -155,7 +155,9 @@ FW.components.Grid = function(domr) {
                     Grid.getModule().callbacks['paginateFail'](xhr);
                 else if (xhr.status == 401)
                     alert('Operação não autorizada! Verifique se seu login expirou.');
-                else
+                else if (xhr.hasOwnProperty('responseJSON') && xhr.responseJSON.hasOwnProperty('message'))
+                    alert(xhr.responseJSON.message);
+                else 
                     alert(textStatus);
             },
             'always': function(xhr) {
@@ -217,7 +219,7 @@ FW.components.Grid = function(domr) {
             for (var item in fields) {
 
                 var name = fields[item].name;
-                var nameParts = fields[item].name.split('.');
+                var nameParts = fields[item].name.split('-');
                 
                 if (nameParts.length == 1) {
                     if (form.find('[name="'+fields[item].name+'"]')[0].localName == 'input')
@@ -225,12 +227,18 @@ FW.components.Grid = function(domr) {
                     else 
                         op = 'EQ';
                 } else {
-                    name = nameParts[0];
-                    op = nameParts[1];
+                    op = nameParts[nameParts.length-1];
+                    if (['EQ', 'NEQ', 'LK', 'GT', 'GTE', 'LT', 'LTE'].indexOf(op) !== -1) {
+                        nameParts.pop()
+                        name = nameParts.join('-');                        ;
+                    } else {
+                        name = nameParts.join('-');
+                        op = 'EQ';
+                    }                    
                 } 
 
                 if (fields[item].value && fields[item].value != 'Carregando opções...')
-                    filters[name + '.' + op] = fields[item].value;
+                    filters[name + '-' + op] = fields[item].value;
             }
         }
 
