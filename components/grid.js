@@ -624,6 +624,8 @@ FW.components.Grid = function(domr) {
 
     function scan() {
 
+        FW.scan(Grid.domr);
+
         Grid.domr.find('form').find('input').each(function() {
             $(this).keyup(function( event ) {
                 ;
