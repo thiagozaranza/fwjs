@@ -148,13 +148,15 @@ FW.components.Modal = function(config) {
                 done: function() {                    
                     $(Modal.domr)
                         .off('show.bs.modal').on('show.bs.modal', function (evt) {
+                            disableActions();
                             FW.modalStack.push(Modal);
                         })
                         .off('hide.bs.modal').on('hide.bs.modal', function (evt) {
-                            FW.modalStack.pop();
+                            FW.modalStack.pop();                            
                         })
                         .off('shown.bs.modal').on('shown.bs.modal', function (evt) {
                             onModalShown(evt);
+                            enableActions();
                         })
                         .off('hidden.bs.modal').on('hidden.bs.modal', function (evt) {                            
                             onModalHidden(evt);                          
@@ -166,6 +168,31 @@ FW.components.Modal = function(config) {
         else 
             onModalReady(params);                                
     };
+
+    function disableActions() {
+        Modal.domr.find('button[fw-action]').each(function() {
+            $(this).prop('disabled', true);
+        });
+    }
+
+    function enableActions() {
+        var loadingCombos = Modal.domr.find('.btn-loading').length;
+
+        if (loadingCombos) {
+            var interval = window.setInterval(function() {
+                if (Modal.domr.find('.btn-loading').length == 0) {
+                    Modal.domr.find('button[fw-action]').each(function() {
+                        $(this).prop('disabled', false);
+                    });
+                    clearInterval(interval);
+                }
+            }, 100);
+        } else {
+            Modal.domr.find('button[fw-action]').each(function() {
+                $(this).prop('disabled', false);
+            });
+        }     
+    }
 
     function show() {
         Modal.formReady = false;
