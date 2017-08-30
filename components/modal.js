@@ -147,6 +147,12 @@ FW.components.Modal = function(config) {
             Modal.load({                
                 done: function() {                    
                     $(Modal.domr)
+                        .off('show.bs.modal').on('show.bs.modal', function (evt) {
+                            FW.modalStack.push(Modal);
+                        })
+                        .off('hide.bs.modal').on('hide.bs.modal', function (evt) {
+                            FW.modalStack.pop();
+                        })
                         .off('shown.bs.modal').on('shown.bs.modal', function (evt) {
                             onModalShown(evt);
                         })
@@ -166,14 +172,13 @@ FW.components.Modal = function(config) {
         $(Modal.domr).modal('show');   
     }
 
-    function onModalShown(evt) {
+    function onModalShown(evt) {        
         var inputs = $(Modal.domr).find('input, select');
         if (inputs.length > 0)
             inputs[0].focus();
     }
 
-    function onModalHidden(evt) {
-        
+    function onModalHidden(evt) {        
         Modal.clean();
     }
 

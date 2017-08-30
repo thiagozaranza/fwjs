@@ -2,6 +2,7 @@ window.FW = {
     config: {
         url: location.href.split('/public')[0] + '/public/admin'
     },
+    modalStack : [],
     modules: {},
     components: [],
     helpers: [],

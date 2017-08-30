@@ -52,7 +52,10 @@ FW.components.Module = function(FW, controller) {
             });
 
             if (!hasModuleGrid)    
-                module.actions.show(xhr.model);        
+                module.actions.show(xhr.model);
+
+            if (FW.modalStack.length)
+                FW.modalStack[FW.modalStack.length - 1].refresh();            
         },
         updateFail: function(xhr) {
             alert('Erro ao editar o registro');
@@ -130,7 +133,7 @@ FW.components.Module = function(FW, controller) {
                     id: 'modal-show-' + module.config.controller,
                     title: 'Visualizar ' + module.config.name,
                     url: module.config.controller + '/modal/show',
-                    actionButtons: [ 'destroy' ]
+                    actionButtons: [ 'modalEdit', 'destroy' ]
                 });
             }
             module.modalShow.open(obj);
