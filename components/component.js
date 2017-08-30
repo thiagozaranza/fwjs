@@ -1,9 +1,9 @@
-FW.components.Component = function(component, domr) {
+FW.components.Component = function(component, domr, controller) {
 
     "Use Strict";
 
     component.domr = domr;  
-    component._controller;
+    component._controller = controller;
     component._module;
     component._waiting;
 

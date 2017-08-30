@@ -1,16 +1,14 @@
-FW.components.Form = function(domr) {
+FW.components.Form = function(domr, controller) {
 
     "Use Strict";
 
-    var Form = Form || {};    
+    var Form = Form || {}; 
 
     var loadId
 
     function init(domr)
     {        
-        Form = FW.components.Component(Form, domr);
-
-        if (!Form.getModule()) return;
+        Form = FW.components.Component(Form, domr, controller);
 
         loadId = Form.domr.attr('fw-load');
 
@@ -18,8 +16,6 @@ FW.components.Form = function(domr) {
 
         if (loadId)
             Form.load(loadId);
-
-        FW.registerComponent('form', Form);
 
         return Form;
     };
@@ -49,7 +45,7 @@ FW.components.Form = function(domr) {
             };
         }
 
-        FW.helpers.Rest.get(Form.getModule().config.controller, callbacks, id);
+        FW.helpers.Rest.get(Form.getController(), callbacks, id);
     };
 
     Form.disableButtons = function() {
@@ -84,19 +80,16 @@ FW.components.Form = function(domr) {
             Form.domr.find('textarea').each(function() {
                 var id = $(this).attr('id');
                 var name = $(this).attr('name');
-                if (!id) return;
-
-                if (CKEDITOR && CKEDITOR.instances.hasOwnProperty(id))
+                
+                if (id && CKEDITOR && CKEDITOR.instances.hasOwnProperty(id))
                     CKEDITOR.instances[id].setData(obj[name]);
             });
 
             Form.domr.find('select').each(function() {
                 if ($(this).attr('name') == field) {
-
                     var combo = FW.getRegisteredComponent('combo', $(this));   
-
-                    if (!combo) return;
-                    combo.setValue(obj[field]);
+                    if (combo)                    
+                        combo.setValue(obj[field]);
                 }
             });
 
@@ -156,7 +149,7 @@ FW.components.Form = function(domr) {
         });
     };
 
-    Form.getFilledObject = function() {
+    Form.getValue = function() {
 
         var obj = {};
 
@@ -199,6 +192,25 @@ FW.components.Form = function(domr) {
             Form.load(idHidden.val());
     }
 
+    Form.addParam = function(key, value) {
+
+        if (Form.domr.attr('fw-no-params') !== undefined)
+            return;
+
+        var hiddenParam = Form.domr.find('input[type="hidden"][name="'+ key +'"]');
+
+        if (hiddenParam.length)
+            hiddenParam.val(value);
+        else 
+            Form.domr.append('<input type="hidden" name="' + key + '" value="' + value + '" />');
+    }
+
+    Form.addParams = function(params) {
+        for (var key in params) {
+            Form.addParam(key, params[key]);
+        }
+    }
+
     function scan() {
         
     };
@@ -216,5 +228,5 @@ FW.components.Form = function(domr) {
         return ano + '-' + mes + '-' + dia + hora;
     }
 
-    return init(domr);
+    return init(domr, controller);
 };

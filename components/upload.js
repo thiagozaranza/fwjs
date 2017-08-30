@@ -1,15 +1,11 @@
-FW.components.Upload = function ( domr ) {
+FW.components.Upload = function (domr, controller) {
     "use strict";
 
     var Upload = Upload || {};
 
-    function init(domr) {
+    function init(domr, controller) {
 
-        Upload = FW.components.Component(Upload, domr); 
-
-        FW.registerComponent("upload", Upload);
-
-        if (!Upload.getModule()) return;
+        Upload = FW.components.Component(Upload, domr, controller); 
 
         dropzone();
 
@@ -106,5 +102,5 @@ FW.components.Upload = function ( domr ) {
       return button;
     };
 
-    return init(domr);    
+    return init(domr, controller);    
 };

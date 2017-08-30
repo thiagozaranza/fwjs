@@ -2,7 +2,7 @@ window.FW = {
     config: {
         url: location.href.split('/public')[0] + '/public/admin'
     },
-    modules: [],
+    modules: {},
     components: [],
     helpers: [],
     registry: {},
@@ -65,15 +65,17 @@ window.FW = {
         }    
     },
 
-    registerComponent: function ( type, component ) {
+    registerComponent: function (type, component) {
         if (!FW.registry.hasOwnProperty(type))
             FW.registry[type] = [];
 
         if (!FW.getRegisteredComponent(type, component.domr))
             FW.registry[type].push(component);
+
+        return component;
     },
 
-    getRegisteredComponent: function( type, domr ) {
+    getRegisteredComponent: function(type, domr) {
         for (var component in FW.registry[type]) {
             if (domr && FW.registry[type][component].hasOwnProperty('domr') && FW.registry[type][component].domr[0] === domr[0])
                 return FW.registry[type][component];
@@ -123,17 +125,118 @@ window.FW = {
         }
     },
 
-    scan: function(domr) {
+    getComponents: function(domr) {
 
-        if (!domr)
-            domr = $('body');
+        var components = {};
 
         domr.find("form").each(function() {
-            new FW.components.Form($(this));
+            var component = FW.getRegisteredComponent('form', $(this));            
+            if (component)
+                FW.registerComponent('form', new FW.components.Form($(this), $(this).attr('fw-controller') || controller));
+            else
+                component.refresh();
+        });
+
+    },
+
+    scan: function(domr, controller) {
+
+        var components = {};
+
+        if (!domr) {
+            domr = $('body');
+            var master = domr.find("[fw-controller]");
+
+            if (master.length == 0) return;
+
+            controller = $(domr.find("[fw-controller]")[0]).attr('fw-controller');
+        }
+
+        domr.find("[fw-controller]").each(function() {            
+            var controller = $(this).attr('fw-controller');
+            if (!FW.modules.hasOwnProperty(controller))
+                FW.modules[controller] = new FW.components.Module(FW, controller);
+        });
+
+        domr.find("form").each(function() {
+            var component = FW.getRegisteredComponent('form', $(this));            
+            if (!component) 
+                component = FW.registerComponent('form', new FW.components.Form($(this), $(this).attr('fw-controller') || controller));
+
+            if (!components.hasOwnProperty('form')) 
+                components.form = [];
+
+            components.form.push(component);            
         });
 
         domr.find("select").each(function() {
-            new FW.components.Combo($(this));
+            
+            if (!$(this).attr('fw-controller'))
+                return;
+
+            var component = FW.getRegisteredComponent('combo', $(this));
+            if (!component) 
+                component = FW.registerComponent('combo', new FW.components.Combo($(this), $(this).attr('fw-controller')));
+
+            if (!components.hasOwnProperty('combo'))
+                components.combo = [];
+
+            components.combo.push(component);            
+        });
+
+        domr.find("[fw-component='grid']").each(function() {
+            var component = FW.getRegisteredComponent('grid', $(this));
+            if (!component) 
+                component = FW.registerComponent('grid', new FW.components.Grid($(this), $(this).attr('fw-controller') || controller));            
+
+            if (!components.hasOwnProperty('grid'))
+                components.grid = [];
+
+            components.grid.push(component);            
+        });
+
+        domr.find("[fw-component='show']").each(function() {            
+            var component = FW.getRegisteredComponent('show', $(this));
+            if (!component) 
+                component = FW.registerComponent('show', new FW.components.Show($(this), $(this).attr('fw-controller') || controller));   
+
+            if (!components.hasOwnProperty('show'))
+                components.show = [];
+
+            components.show.push(component);            
+        });
+
+        domr.find("[fw-component='add']").each(function() {
+            var component = FW.getRegisteredComponent('add', $(this));
+            if (!component) 
+                component = FW.registerComponent('add', new FW.components.Add($(this), $(this).attr('fw-controller') || controller));
+
+            if (!components.hasOwnProperty('add'))
+                components.add = [];
+
+            components.add.push(component);              
+        });
+
+        domr.find("div[fw-component='upload']").each(function() {
+            var component = FW.getRegisteredComponent('upload', $(this));
+            if (!component)
+                component = FW.registerComponent('upload', new FW.components.Upload($(this), $(this).attr('fw-controller') || controller));
+
+            if (!components.hasOwnProperty('upload'))
+                components.upload = [];
+
+            components.upload.push(component);         
+        });
+
+        domr.find("button, a").each(function() {
+            var component = FW.getRegisteredComponent('button', $(this));
+            if (!component)
+                component = FW.registerComponent('button', new FW.components.Button($(this), $(this).attr('fw-controller') || controller));
+
+            if (!components.hasOwnProperty('button'))
+                components.button = [];
+
+            components.button.push(component);
         });
 
         domr.find("textarea").each(function() {
@@ -145,25 +248,7 @@ window.FW = {
             CKEDITOR.replace(id);
         });
 
-        domr.find("[fw-component='grid']").each(function() {
-            new FW.components.Grid($(this));
-        });        
-
-        domr.find("[fw-component='show']").each(function() {
-            new FW.components.Show($(this));
-        });
-
-        domr.find("div[fw-component='upload']").each(function() {
-            new FW.components.Upload($(this));
-        });
-
-        domr.find("button, a").each(function() {
-            new FW.components.Button($(this));
-        });
-
-        domr.find("[fw-component='add']").each(function() {
-            new FW.components.Add($(this));
-        });
+        return components;
     },
 
     clean: function() {

@@ -5,6 +5,7 @@ FW.components.Modal = function(config) {
     var Modal = Modal || {};
 
     Modal.config = config;
+    Modal.formReady = false;
 
     var content;
     var form;
@@ -12,14 +13,7 @@ FW.components.Modal = function(config) {
     function init() {
 
         Modal = FW.components.Component(Modal);
-
-        var modalRegistered = FW.getRegisteredComponent('modal', Modal.domr);
         
-        if (modalRegistered) 
-            return modalRegistered;
-        
-        FW.registerComponent('modal', Modal);
-
         return Modal;
     };
 
@@ -49,7 +43,7 @@ FW.components.Modal = function(config) {
         });
     };
 
-    function buildHtml( content ) {
+    function getButtons() {
 
         var buttons = [];
 
@@ -67,6 +61,11 @@ FW.components.Modal = function(config) {
 
             buttons.push(FW.components.ButtonFactory.make(buttonConfig));
         }
+
+        return buttons;
+    };
+
+    function buildHtml( content ) {
 
         Modal.domr = $(document.createElement('div'))
             .attr('id', config.id)
@@ -88,42 +87,29 @@ FW.components.Modal = function(config) {
 
         Modal.domr.find('.modal-body').append(content);
 
+        var buttons = getButtons();
+
         for (var item in buttons) {
 
-            if (buttons[item].attr('fw-action')) {
-                buttons[item].on('click', function () {
-                    var action = $(this).attr('fw-action');
+            var action = buttons[item].attr('fw-action');
 
-                    if (Modal.domr.find('form').length) {
-                        var module = null;                        
-                        var obj = null;
+            if (action) {       
+                buttons[item].on('click', function () {                    
+                    
+                    var controller = $(this).attr('fw-controller');
+                    var mainComponent = Modal.getMainComponent();
 
-                        var form = FW.getRegisteredComponent('form', Modal.domr.find('form'));
+                    if (!controller && mainComponent)
+                        controller = mainComponent.getController();
 
-                        if (form) {
-                            module = FW.getModule(form.getController());
-                            obj = form.getFilledObject();
-                        } else {
-                            var gridComponent = FW.getRegisteredComponent('grid', Modal.domr.find('div[fw-component="grid"]'));
-                            module = FW.getModule(gridComponent.getController());
-                            obj = {
-                                controller: gridComponent.getController(),
-                                list: gridComponent.checkedList
-                            };
+                    if (!controller) return;
 
-                            var addComponent = FW.getRegisteredComponent('add', Modal.domr.find('div[fw-component="add"]')); 
+                    var module = FW.getModule(controller);
 
-                            if (addComponent) {
-                                obj['parentController'] = addComponent.parentController;
-                                obj['parentId'] = addComponent.parentId;
-                            }
-                        }
+                    if (!module) return;
 
-                        if (!module) return;
-
-                        if (module.actions.hasOwnProperty(action) && typeof module.actions[action] == 'function')
-                            module.actions[action](obj);
-                    }
+                    if (module.actions.hasOwnProperty(action) && typeof module.actions[action] == 'function')
+                        module.actions[action](mainComponent.getValue());
                 });
             }
 
@@ -137,6 +123,20 @@ FW.components.Modal = function(config) {
         return $('#' + config.id).length > 0;
     }
 
+    Modal.getMainComponent = function() {
+
+        var components = FW.scan($(Modal.domr));
+
+        if (components.hasOwnProperty('grid') && components.grid.length) 
+            return components.grid[0];        
+
+        if (components.hasOwnProperty('form') && components.form.length) 
+            return components.form[0];
+
+        if (components.hasOwnProperty('show') && components.show.length) 
+            return components.show[0];
+    }
+
     Modal.isOpened = function() {
         return $(Modal.domr).css('display') == 'block';
     };
@@ -145,7 +145,7 @@ FW.components.Modal = function(config) {
 
         if (!isLoaded())
             Modal.load({                
-                done: function() {
+                done: function() {                    
                     $(Modal.domr)
                         .off('shown.bs.modal').on('shown.bs.modal', function (evt) {
                             onModalShown(evt);
@@ -158,10 +158,11 @@ FW.components.Modal = function(config) {
                 }
             });
         else 
-            onModalReady(params);                    
+            onModalReady(params);                                
     };
 
     function show() {
+        Modal.formReady = false;
         $(Modal.domr).modal('show');   
     }
 
@@ -172,75 +173,20 @@ FW.components.Modal = function(config) {
     }
 
     function onModalHidden(evt) {
-        $(Modal.domr).find('form').each(function() {
-            var form = FW.getRegisteredComponent('form', $(this));
-            if (form)
-                form.clean();
-        });
-
-        for (var i in FW.registry.modal) {
-            if (FW.registry.modal[i].isOpened()) {
-                //FW.registry.modal[i].refresh();                                    
-            }
-        };  
+        
+        Modal.clean();
     }
 
     function onModalReady(params) {
 
         sendParentModalsToBack();
 
-        appendHiddenParametersOnForms(params);
+        var components = FW.scan($(Modal.domr));
 
-        if (params.hasOwnProperty('id')) {
-            appendIdParameterOnShowComponents(params.id);
-            appendIdParameterOnModalButtons(params.id);
-        }
-
-        FW.scan($(Modal.domr));
+        Modal.addParams(params, components);
+        Modal.refresh(components);
         
-        if (hasForm()) {
-            if (hasIdHiddenOnForm())
-                loadForm();
-            else {
-                var form = getForm();
-                if (form)
-                    form.fill(params);
-                show();
-            }
-        } else {
-            show();         
-        }
-    }
-
-    function getForm() {
-        return FW.getRegisteredComponent('form', getFormDom());
-    }
-
-    function getFormDom() {
-        return $(Modal.domr).find('form');
-    }
-
-    function hasForm() {
-        return getFormDom().length;
-    }
-
-    function hasIdHiddenOnForm() {
-        return $(Modal.domr).find('[type="hidden"][name="id"]').length;
-    }
-
-    function loadForm() {
-
-        var form = FW.getRegisteredComponent('form', getFormDom());
-
-        if (!form) return;
-
-        var callbacks = [];
-        callbacks['done'] = function(xhr) {
-            form.fill(xhr);
-            show();
-        };
-
-        form.load($(Modal.domr).find('[type="hidden"][name="id"]').val(), callbacks);    
+        show();
     }
 
     function sendParentModalsToBack() {
@@ -252,39 +198,50 @@ FW.components.Modal = function(config) {
         };
     }
 
-    function appendHiddenParametersOnForms(params) {
-        $(Modal.domr).find('form').each(function() {
-            for (var key in params) {
-                var hiddenParam = $(this).find('[type="hidden"][name="'+ key +'"]');
-                if (hiddenParam.length)
-                    hiddenParam.val(params[key]);
-                else 
-                    $(this).append('<input type="hidden" name="' + key + '" value="' + params[key] + '" />');
-            }
-        });
-    }
-
-    function appendIdParameterOnShowComponents(id) {
-        $(Modal.domr).find('[fw-component="show"]').each(function() {                        
-            $(this).attr('fw-id', id);
-        });
-    }
-
-    function appendIdParameterOnModalButtons(id) {
-        $(Modal.domr).find('button[fw-controller]').each(function() {
-            var action = $(this).attr('fw-action');
-            if (action && action.indexOf('modal'))
-                $(this).attr('fw-id', id);
-        });
-    }
-
     Modal.close = function() {
         $(Modal.domr).modal('hide');
     };
 
-    Modal.refresh = function() {
-        var form = FW.getRegisteredComponent('form', $(Modal.domr).find('form'));
-        if (form) form.refresh();
+    Modal.addParams = function(params, components) {
+
+        if (!components)
+            components = FW.scan($(Modal.domr));
+
+        for (var type in components) {
+            if (type != 'form' && type != 'show' && type != 'button')
+                continue;            
+            for (var component in components[type]) {                                
+                components[type][component].addParams(params);
+            }
+        }
+    };
+
+    Modal.clean = function(components) {
+
+        if (!components)
+            components = FW.scan($(Modal.domr));
+
+        for (var type in components) {
+            if (type != 'form' && type != 'show' && type != 'grid' && type != 'add')
+                continue;
+            for (var component in components[type]) {
+                components[type][component].clean();
+            }
+        }  
+    };
+
+    Modal.refresh = function(components) {
+
+        if (!components)
+            components = FW.scan($(Modal.domr));
+
+        for (var type in components) {
+            if (type != 'form' && type != 'show')
+                continue;
+            for (var component in components[type]) {
+                components[type][component].refresh();
+            }
+        }  
     };
 
     return init();

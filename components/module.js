@@ -1,13 +1,12 @@
-FW.components.Module = function($, module) {
+FW.components.Module = function(FW, controller) {
 
     "Use Strict";
 
-    module.components = {
-        forms: [],
-        grids: [],
-        combos: [],
-        shows: [],
-        buttons: []
+    var module = {};
+
+    module.config = {
+        controller: controller,
+        name: controller
     };
 
     module.parsers = {};
@@ -19,35 +18,57 @@ FW.components.Module = function($, module) {
             if(module.modalCreate)
                 module.modalCreate.close();
 
-            var $grids = $('[fw-component="grid"][fw-controller="' + module.config.controller + '"]');
-            if ($grids.length) {
-                $grids.each(function() {
-                    FW.getRegisteredComponent('grid', $(this)).refresh();
-                });
-            } else                
-                module.actions.show(xhr.model);
+            var hasModuleGrid = false;
+            var moduleController = module.getController();
+
+            $('[fw-component="grid"]').each(function() {
+                var grid = FW.getRegisteredComponent('grid', $(this));                
+                if (grid && grid.getController() == moduleController) {
+                    hasModuleGrid = true;
+                    grid.refresh();
+                }
+            });
+
+            if (!hasModuleGrid)    
+                module.actions.show(xhr.model);   
         },
         storeFail: function(xhr) {
             alert('Erro ao salvar o registro');
         },
         updateDone: function(xhr) {
+
             if(module.modalEdit)
                 module.modalEdit.close();
 
-            var $grids = $('[fw-component="grid"][fw-controller="' + module.config.controller + '"]');
-            if ($grids.length) {
-                $grids.each(function() {
-                    FW.getRegisteredComponent('grid', $(this)).refresh();
-                });
-            } else                
+            var hasModuleGrid = false;
+            var moduleController = module.getController();
+
+            $('[fw-component="grid"]').each(function() {
+                var grid = FW.getRegisteredComponent('grid', $(this));                
+                if (grid && grid.getController() == moduleController) {
+                    hasModuleGrid = true;
+                    grid.refresh();
+                }
+            });
+
+            if (!hasModuleGrid)    
                 module.actions.show(xhr.model);        
         },
         updateFail: function(xhr) {
             alert('Erro ao editar o registro');
         },
-        destroyDone: function(xhr) {            
-            $('[fw-component="grid"][fw-controller="' + module.config.controller + '"]').each(function() {
-                FW.getRegisteredComponent('grid', $(this)).refresh();
+        destroyDone: function(xhr) {  
+
+            if(module.modalEdit)
+                module.modalEdit.close();
+
+            if(module.modalShow)
+                module.modalShow.close();
+
+            $('[fw-component="grid"]').each(function() {
+                var grid = FW.getRegisteredComponent('grid', $(this));
+                if (grid.getController() == module.getController())
+                    grid.refresh();
             });        
         },
         destroyFail: function(xhr) {
@@ -117,7 +138,7 @@ FW.components.Module = function($, module) {
         modalAdd: function(obj) {
             if (!module.modalAdd) {
                 module.modalAdd = new FW.components.Modal({
-                    id: 'modal-add-' + module.config.controller,
+                    id: 'modal-add-' + module.getController(),
                     title: 'Visualizar ' + module.config.name,
                     url: module.config.controller + '/modal/add',
                     actionButtons: [ 'add' ]
@@ -126,6 +147,10 @@ FW.components.Module = function($, module) {
             module.modalAdd.open(obj);
         }
     };
+
+    module.getController = function() {
+        return module.config.controller;
+    }
 
     module.on = function (callbackName, callbackFunction) {
         module.callbacks[callbackName] = callbackFunction;
@@ -140,7 +165,7 @@ FW.components.Module = function($, module) {
     module.addForm = function(form) {
         module.components.forms.push(form);
         return module;
-    }
+    };
 
     return module;
 };

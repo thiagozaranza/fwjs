@@ -1,22 +1,19 @@
-FW.components.Show = function ( domr ) {
+FW.components.Show = function (domr, controller) {
+    
     "use strict";
 
     var Show = Show || {};
 
-    function init(domr) {  
+    function init(domr, controller) {  
 
-        Show = FW.components.Component(Show, domr);      
-
-        if (!Show.getModule()) return;
+        Show = FW.components.Component(Show, domr, controller);      
 
         Show.load(Show.domr.attr("fw-id"));
-
-        FW.registerComponent("show", Show);
 
         return Show;
     };
 
-    Show.fill = function( obj ) {
+    Show.fill = function(obj) {
         Show.domr.find("[fw-field]").each(function() {
             $(this).html(
                 FW.helpers.Parser.parse(Show.getModule(), $(this).attr("fw-parse"), obj, $(this).attr("fw-field"))
@@ -39,7 +36,17 @@ FW.components.Show = function ( domr ) {
         });
     };
 
-    Show.load = function( id, callbacks ) {
+    Show.clean = function() {
+        Show.domr.find("[fw-field]").each(function() {
+            $(this).html('');
+        });
+    };
+
+    Show.refresh = function() {
+        Show.load(Show.domr.attr("fw-id"));
+    };
+
+    Show.load = function(id, callbacks) {
         if (!id) return;
 
         Show.id = id;
@@ -58,5 +65,24 @@ FW.components.Show = function ( domr ) {
         FW.helpers.Rest.get(Show.getModule().config.controller, callbacks, Show.id);
     };
 
-    return init(domr);
+    Show.getValue = function() {
+        return {
+            id: Show.domr.attr("fw-id")            
+        }
+    };
+
+    Show.addParams = function(params) {
+        for (var key in params) {
+            Show.addParam(key, params[key]);
+        }
+    };
+
+    Show.addParam = function(key, value) {
+        if (key == 'id')
+            Show.domr.attr("fw-id", value);
+        else
+            Show.domr.attr("fw-param-" . key, value);
+    };
+
+    return init(domr, controller);
 };

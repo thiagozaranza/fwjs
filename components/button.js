@@ -1,17 +1,15 @@
-FW.components.Button = function(domr) {
+FW.components.Button = function(domr, controller) {
 
     "Use Strict";
 
     var Button = Button || {};
 
     Button.id = null;
+    Button.action = null;
 
-    function init(domr) {
+    function init(domr, controller) {
 
-        Button = FW.components.Component(Button, domr);
-
-        if (FW.getRegisteredComponent('button', Button.domr))
-            return;
+        Button = FW.components.Component(Button, domr, controller);
 
         Button.id = Button.domr.attr('id');
         Button.action = Button.domr.attr('fw-action');
@@ -36,13 +34,26 @@ FW.components.Button = function(domr) {
                 Button.getModule().actions[Button.action](obj);
             }
         });
-    
-        FW.registerComponent('button', Button);
 
         return Button;
     };
 
-    return init(domr);
+    Button.addParams = function(params) {
+        if (!Button.action)
+            return;
+        for (var key in params) {
+            Button.addParam(key, params[key]);
+        }
+    };
+
+    Button.addParam = function(key, value) {
+        if (key == 'id')
+            Button.domr.attr("fw-id", value);
+        else
+            Button.domr.attr("fw-param-" . key, value);
+    };
+
+    return init(domr, controller);
 };
 
 FW.components.ButtonFactory = (function($, FW) {

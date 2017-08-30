@@ -1,4 +1,4 @@
-FW.components.Combo = function(domr) {
+FW.components.Combo = function(domr, controller) {
 
     "Use Strict";
 
@@ -8,22 +8,18 @@ FW.components.Combo = function(domr) {
     var loading = false;
     var loadingText = 'Carregando opções...';
     
-    function init(domr) {
+    function init(domr, controller) {
 
-        Combo = FW.components.Component(Combo, domr);
+        Combo = FW.components.Component(Combo, domr, controller);
 
         domr.attr('data-live-search', "true");
         domr.selectpicker({
-          style: 'btn-default',
-          size: 8
+            style: 'btn-default',
+            size: 8
         });
        
-        if (!Combo.getController()) return;
-
         Combo.reference = Combo.domr.attr('fw-reference');
         Combo.value = Combo.domr.attr('fw-value');
-
-        FW.registerComponent('combo', Combo);
 
         if (Combo.reference)
             bindReference();
@@ -60,10 +56,10 @@ FW.components.Combo = function(domr) {
     }
 
     Combo.getController = function() {
-        if (Combo.controller)
-            return Combo.controller;        
+        if (Combo._controller)
+            return Combo._controller;        
         if (Combo.domr.attr("fw-controller"))             
-            return Combo.controller = Combo.domr.attr("fw-controller");        
+            return Combo._controller = Combo.domr.attr("fw-controller");        
     };
 
     Combo.fill = function ( obj ) {
@@ -132,17 +128,21 @@ FW.components.Combo = function(domr) {
                 var interval = window.setInterval(function() {  
                     var referenceValue = Combo.reference.val();
                     if (referenceValue != loadingText) {
-                        data[Combo.reference.attr('name') + '.EQ'] = referenceValue;                                                
+                        data[Combo.reference.attr('name') + '-EQ'] = referenceValue;                                                
                         clearInterval(interval);
                     }                    
                 }, 100);
             } else {
-                data[Combo.reference.attr('name') + '.EQ'] = referenceValue;
+                data[Combo.reference.attr('name') + '-EQ'] = referenceValue;
                 FW.helpers.Rest.getList(Combo.getController(), callbacks, data);    
             }           
         } else {            
             FW.helpers.Rest.getList(Combo.getController(), callbacks, data);
         }
+    };
+
+    Combo.refresh = function () {        
+        domr.selectpicker('refresh');
     };
 
     Combo.setValue = function(value) {
@@ -208,5 +208,5 @@ FW.components.Combo = function(domr) {
         }
     };
 
-    return init(domr);
+    return init(domr, controller);
 };

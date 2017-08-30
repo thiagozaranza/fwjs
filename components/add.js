@@ -1,4 +1,4 @@
-FW.components.Add = function(domr) {
+FW.components.Add = function(domr, controller) {
 
     "Use Strict";
 
@@ -9,9 +9,9 @@ FW.components.Add = function(domr) {
 
     var readOnly = false;
     
-    function init(domr) {
+    function init(domr, controller) {
 
-        Add = FW.components.Component(Add, domr);
+        Add = FW.components.Component(Add, domr, controller);
 
         if (Add.domr.attr('fw-read-only') !== undefined)
             readOnly = true;
@@ -21,8 +21,6 @@ FW.components.Add = function(domr) {
 
         Add.name = Add.domr.attr('name');
         
-        FW.registerComponent('add', Add);
-
         return Add;
     };
 
@@ -30,7 +28,11 @@ FW.components.Add = function(domr) {
         Add.list = list;
         renderList();
         return Add;
-    }
+    };
+
+    Add.getValue = function() {        
+        return Add.list;        
+    };
 
     Add.val = function() {
         var ids = [];
@@ -44,6 +46,10 @@ FW.components.Add = function(domr) {
         Add.list = [];
         renderList();
         return Add;
+    }
+
+    Add.refresh = function() {
+        ;
     }
 
     function setButtonsListeners() {
@@ -207,5 +213,5 @@ FW.components.Add = function(domr) {
         }
     }
 
-    return init(domr);
+    return init(domr, controller);
 };

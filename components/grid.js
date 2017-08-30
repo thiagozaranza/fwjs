@@ -1,4 +1,4 @@
-FW.components.Grid = function(domr) {
+FW.components.Grid = function(domr, controller) {
 
     "Use Strict";
 
@@ -25,20 +25,16 @@ FW.components.Grid = function(domr) {
         }
     };
 
-    function init(domr) {
+    function init(domr, controller) {
 
-        Grid = FW.components.Component(Grid, domr);
+        Grid = FW.components.Component(Grid, domr, controller);
 
         Grid.table = Grid.domr.find('table');
-
-        if (!Grid.getModule()) return;
 
         $(document).ready(function() {
             scan();
             Grid.paginate(1);
         });
-
-        FW.registerComponent('grid', Grid);
 
         return Grid;
     };
@@ -64,8 +60,22 @@ FW.components.Grid = function(domr) {
         }
     };
 
+    Grid.clean = function() {
+        Grid.checkedList = [];
+        Grid.domr.find("input[type='checkbox']").each(function() {
+            $(this).prop("checked", false); 
+        });
+    };
+
     Grid.refresh = function() {
         Grid.paginate(getPage());
+    };
+
+    Grid.getValue = function() {
+        return {
+            controller: Grid.getController(),
+            list: Grid.checkedList
+        }
     };
 
     function getWithList() {
@@ -148,7 +158,6 @@ FW.components.Grid = function(domr) {
 
                 if (xhr.hasOwnProperty('paginator'))
                     renderPaginator(xhr.paginator);
-
             },
             'fail': function(xhr, textStatus) {
                 if (Grid.getModule().callbacks.hasOwnProperty('paginateFail') && typeof Grid.getModule().callbacks['paginateFail'] == 'function')
@@ -666,5 +675,5 @@ FW.components.Grid = function(domr) {
         });
     }
 
-    return init(domr);
+    return init(domr, controller);
 };

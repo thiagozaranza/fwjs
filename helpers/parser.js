@@ -21,6 +21,7 @@ FW.helpers.Parser = (function($, FW) {
         for (part in propParts) {
             if (obj && obj.hasOwnProperty(propParts[part]))
                 obj = obj[propParts[part]];
+            else return;
         }
 
         if (!parser)
