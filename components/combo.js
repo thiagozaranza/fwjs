@@ -102,6 +102,21 @@ FW.components.Combo = function(domr, controller) {
         return $(Combo.domr).val();
     };
 
+    Combo.preload = function() {
+        //$(Combo.domr).parent().css('border-color', 'red');
+        $(Combo.domr).attr('disabled');
+        $(Combo.domr).parent().find('button').addClass('btn-loading');
+        
+        domr.selectpicker('refresh');
+    };
+
+    Combo.posload = function() {
+        //$(Combo.domr).parent().css('border-color', '#ccc');
+        $(Combo.domr).removeAttr('disabled');
+        $(Combo.domr).parent().find('button').removeClass('btn-loading');
+        domr.selectpicker('refresh');
+    };
+
     Combo.load = function( callbacks ) {
 
         if (!callbacks)
@@ -110,12 +125,19 @@ FW.components.Combo = function(domr, controller) {
         if (!callbacks.hasOwnProperty('beforeSend')) {
             callbacks['beforeSend'] = function (xhr) {
                 Combo.clean().domr.append('<option selected="selected">' + loadingText + '</option>');
+                Combo.preload();
             };
         }
 
         if (!callbacks.hasOwnProperty('done')) {
             callbacks['done'] = function (xhr) {
                 Combo.clean().fill(xhr);
+            };
+        }
+
+        if (!callbacks.hasOwnProperty('always')) {
+            callbacks['always'] = function (xhr) {
+                Combo.posload();
             };
         }
 
