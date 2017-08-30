@@ -63,7 +63,9 @@ FW.components.Form = function(domr, controller) {
                 var type = $(this).attr('type');                
                 if ($(this).attr('name') == field) {
                     if (type == 'text') {
-                        $(this).val(FW.helpers.Parser.parse(Form.getModule(), $(this).attr('fw-parse'), obj, $(this).attr('name')));
+                        var value = FW.helpers.Parser.parse(Form.getModule(), $(this).attr('fw-parse'), obj, $(this).attr('name'));
+                        if (typeof value == 'string')
+                            $(this).val(value.trim());
                     }
                     else if (type == 'checkbox') { 
                         if (obj[field] == 'true' || obj[field] == true || obj[field] == 1)

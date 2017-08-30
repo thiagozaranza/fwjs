@@ -176,9 +176,7 @@ FW.components.Modal = function(config) {
     }
 
     function enableActions() {
-        var loadingCombos = Modal.domr.find('.btn-loading').length;
-
-        if (loadingCombos) {
+        if (Modal.domr.find('.btn-loading').length) {
             var interval = window.setInterval(function() {
                 if (Modal.domr.find('.btn-loading').length == 0) {
                     Modal.domr.find('button[fw-action]').each(function() {
