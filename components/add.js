@@ -54,7 +54,7 @@ FW.components.Add = function(domr, controller) {
 
     function setButtonsListeners() {
         Add.domr.find('[fw-action="modalAdd"]').on('click', function() {            
-            Add.wait('add-' + Add.getController(), function(list) {
+            Add.broadcastRegister('add-' + Add.getController(), function(list) {
                 for (var item in list) {
                     if (!inList(list[item].id))
                         Add.list.push(list[item]);

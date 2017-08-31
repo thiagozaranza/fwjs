@@ -116,7 +116,7 @@ window.FW = {
         return params;
     },
 
-    broadcast: function (title, msg) {
+    broadcastReceiver: function (title, msg) {
         for (var item in FW.registry) {
             for (var component in FW.registry[item]) {
                 if (FW.registry[item][component].waiting(title)) {

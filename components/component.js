@@ -42,7 +42,7 @@ FW.components.Component = function(component, domr, controller) {
         return FW.getModule(component.getController());    
     };
 
-    component.wait = function(title, action) {
+    component.broadcastRegister = function(title, action) {
         component._waiting = {
             title: title,
             action: action

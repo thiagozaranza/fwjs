@@ -214,7 +214,20 @@ FW.components.Form = function(domr, controller) {
     }
 
     function scan() {
-        
+        Form.domr.find('select[fw-create-button]').each(function() {
+            
+            var controller = $(this).attr('fw-controller');
+            
+            FW.components.ButtonFactory.make({
+                icon: 'plus',                
+                size: 'xs',
+                align: 'right',
+                attrs: {
+                    'fw-action': 'modalCreate',
+                    'fw-controller': controller
+                }
+            }).insertBefore($(this));            
+        });        
     };
 
     function dateDBFormat(date) {

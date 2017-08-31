@@ -18,18 +18,7 @@ FW.components.Module = function(FW, controller) {
             if(module.modalCreate)
                 module.modalCreate.close();
 
-            var hasModuleGrid = false;
-            var moduleController = module.getController();
-
-            $('[fw-component="grid"]').each(function() {
-                var grid = FW.getRegisteredComponent('grid', $(this));                
-                if (grid && grid.getController() == moduleController) {
-                    hasModuleGrid = true;
-                    grid.refresh();
-                }
-            });
-
-            if (!hasModuleGrid)    
+            if (!module.refreshComponentsWithSameController())     
                 module.actions.show(xhr.model);   
         },
         storeFail: function(xhr) {
@@ -40,22 +29,8 @@ FW.components.Module = function(FW, controller) {
             if(module.modalEdit)
                 module.modalEdit.close();
 
-            var hasModuleGrid = false;
-            var moduleController = module.getController();
-
-            $('[fw-component="grid"]').each(function() {
-                var grid = FW.getRegisteredComponent('grid', $(this));                
-                if (grid && grid.getController() == moduleController) {
-                    hasModuleGrid = true;
-                    grid.refresh();
-                }
-            });
-
-            if (!hasModuleGrid)    
+            if (!module.refreshComponentsWithSameController())    
                 module.actions.show(xhr.model);
-
-            if (FW.modalStack.length)
-                FW.modalStack[FW.modalStack.length - 1].refresh();            
         },
         updateFail: function(xhr) {
             alert('Erro ao editar o registro');
@@ -68,16 +43,32 @@ FW.components.Module = function(FW, controller) {
             if(module.modalShow)
                 module.modalShow.close();
 
-            $('[fw-component="grid"]').each(function() {
-                var grid = FW.getRegisteredComponent('grid', $(this));
-                if (grid.getController() == module.getController())
-                    grid.refresh();
-            });        
+            module.refreshComponentsWithSameController();
         },
         destroyFail: function(xhr) {
             alert('Erro ao deletar o registro');
         },
     };
+
+    module.refreshComponentsWithSameController = function() {
+
+        var hasComponent = false;
+        var moduleController = module.getController();
+
+        for (var type in FW.registry) {
+            if (type != 'grid' && type!='combo' && type!='show')
+                continue;
+            for (var item in FW.registry[type]) {
+                var component = FW.registry[type][item];
+                if (component.getController() == moduleController && typeof component['refresh'] == 'function') {
+                    component.refresh();
+                    hasComponent = true;
+                }
+            }
+        } 
+
+        return hasComponent; 
+    }
 
     module.actions = {
         index: function()
@@ -103,7 +94,7 @@ FW.components.Module = function(FW, controller) {
             FW.helpers.Rest.destroy(module, obj);
         },
         add: function (obj) {
-            FW.broadcast('add-' + obj.controller, obj.list);
+            FW.broadcastReceiver('add-' + obj.controller, obj.list);
         },
         modalCreate: function(obj) {
             if (!module.modalCreate) {

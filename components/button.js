@@ -98,7 +98,8 @@ FW.components.ButtonFactory = (function($, FW) {
 
         if (config.hasOwnProperty('icon')) {
             var icon = $(document.createElement('span'));
-            icon.css('margin-right', '5px');
+            if(config.hasOwnProperty('text'))
+                icon.css('margin-right', '5px');
             icon.addClass('glyphicon');
             icon.addClass('glyphicon-' + config.icon);
             icon.attr('aria-hidden', 'true');

@@ -164,7 +164,7 @@ FW.components.Combo = function(domr, controller) {
     };
 
     Combo.refresh = function () {        
-        domr.selectpicker('refresh');
+        Combo.clean().load();
     };
 
     Combo.setValue = function(value) {
