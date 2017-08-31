@@ -91,11 +91,10 @@ FW.components.Modal = function(config) {
 
         for (var item in buttons) {
 
-            var action = buttons[item].attr('fw-action');
-
-            if (action) {       
+            if (buttons[item].attr('fw-action')) {       
                 buttons[item].on('click', function () {                    
                     
+                    var action = $(this).attr('fw-action');
                     var controller = $(this).attr('fw-controller');
                     var mainComponent = Modal.getMainComponent();
 
