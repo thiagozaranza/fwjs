@@ -204,7 +204,7 @@ FW.components.Modal = function(config) {
     }
 
     function onModalHidden(evt) {        
-        Modal.clean();
+        Modal.domr.remove();
     }
 
     function onModalReady(params) {
