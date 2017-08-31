@@ -146,16 +146,14 @@ FW.components.Modal = function(config) {
             Modal.load({                
                 done: function() {                    
                     $(Modal.domr)
-                        .off('show.bs.modal').on('show.bs.modal', function (evt) {
-                            disableActions();
+                        .off('show.bs.modal').on('show.bs.modal', function (evt) {                            
                             FW.modalStack.push(Modal);
                         })
                         .off('hide.bs.modal').on('hide.bs.modal', function (evt) {
                             FW.modalStack.pop();                            
                         })
                         .off('shown.bs.modal').on('shown.bs.modal', function (evt) {
-                            onModalShown(evt);
-                            enableActions();
+                            onModalShown(evt);                            
                         })
                         .off('hidden.bs.modal').on('hidden.bs.modal', function (evt) {                            
                             onModalHidden(evt);                          
@@ -168,28 +166,6 @@ FW.components.Modal = function(config) {
             onModalReady(params);                                
     };
 
-    function disableActions() {
-        Modal.domr.find('button[fw-action]').each(function() {
-            $(this).prop('disabled', true);
-        });
-    }
-
-    function enableActions() {
-        if (Modal.domr.find('.btn-loading').length) {
-            var interval = window.setInterval(function() {
-                if (Modal.domr.find('.btn-loading').length == 0) {
-                    Modal.domr.find('button[fw-action]').each(function() {
-                        $(this).prop('disabled', false);
-                    });
-                    clearInterval(interval);
-                }
-            }, 100);
-        } else {
-            Modal.domr.find('button[fw-action]').each(function() {
-                $(this).prop('disabled', false);
-            });
-        }     
-    }
 
     function show() {
         Modal.formReady = false;

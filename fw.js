@@ -252,6 +252,18 @@ window.FW = {
         return components;
     },
 
+    disableActionButtons: function() {
+        $('button[fw-action]').each(function() {
+            $(this).prop('disabled', true);
+        });
+    },
+
+    enableActionButtons: function() {
+        $('button[fw-action]').each(function() {
+            $(this).prop('disabled', false);
+        });
+    },
+
     clean: function() {
 
         FW.registry = {};

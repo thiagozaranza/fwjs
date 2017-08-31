@@ -38,6 +38,14 @@ FW.components.Button = function(domr, controller) {
         return Button;
     };
 
+    Button.enable = function() {
+
+    };
+
+    Button.disable = function() {
+
+    };
+
     Button.addParams = function(params) {
         if (!Button.action)
             return;

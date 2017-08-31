@@ -103,18 +103,18 @@ FW.components.Combo = function(domr, controller) {
     };
 
     Combo.preload = function() {
-        //$(Combo.domr).parent().css('border-color', 'red');
+        FW.disableActionButtons();
         $(Combo.domr).attr('disabled');
         $(Combo.domr).parent().find('button').addClass('btn-loading');
         
         domr.selectpicker('refresh');
     };
 
-    Combo.posload = function() {
-        //$(Combo.domr).parent().css('border-color', '#ccc');
+    Combo.posload = function() {               
         $(Combo.domr).removeAttr('disabled');
         $(Combo.domr).parent().find('button').removeClass('btn-loading');
         domr.selectpicker('refresh');
+        FW.enableActionButtons(); 
     };
 
     Combo.load = function( callbacks ) {

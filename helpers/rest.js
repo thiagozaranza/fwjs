@@ -29,6 +29,7 @@ FW.helpers.Rest = (function($, FW) {
             },
             dataType: 'json',
             beforeSend: function( xhr ) {
+                FW.disableActionButtons();
                 if (callbacks.hasOwnProperty('beforeSend'))
                     callbacks['beforeSend'](xhr);
             }
@@ -39,6 +40,7 @@ FW.helpers.Rest = (function($, FW) {
             if (callbacks.hasOwnProperty('done'))
                 callbacks['fail'](xhr, textStatus);
         }).always(function(xhr) {
+            FW.enableActionButtons();
             if (callbacks.hasOwnProperty('always'))
                 callbacks['always'](xhr);
         });
@@ -61,6 +63,7 @@ FW.helpers.Rest = (function($, FW) {
             },
             dataType: 'json',
             beforeSend: function( xhr ) {
+                FW.disableActionButtons();
                 if (callbacks.hasOwnProperty('beforeSend'))
                     callbacks['beforeSend'](xhr);
             }
@@ -71,6 +74,7 @@ FW.helpers.Rest = (function($, FW) {
             if (callbacks.hasOwnProperty('fail'))
                 callbacks['fail'](xhr, textStatus);
         }).always(function(xhr) {
+            FW.enableActionButtons();
             if (callbacks.hasOwnProperty('always'))
                 callbacks['always'](xhr);
         });
@@ -89,7 +93,10 @@ FW.helpers.Rest = (function($, FW) {
             accepts: {
                 json: 'application/json'
             },
-            dataType: 'json'
+            dataType: 'json',
+            beforeSend: function() {
+                FW.disableActionButtons();
+            }
         }).done(function(xhr) {
             if (module.callbacks.hasOwnProperty('storeDone') && typeof module.callbacks['storeDone'] == 'function')
                 module.callbacks['storeDone'](xhr);
@@ -101,6 +108,7 @@ FW.helpers.Rest = (function($, FW) {
                 alert('Operação não autorizada! Verifique se seu login expirou.')
 
         }).always(function(xhr) {
+            FW.enableActionButtons();
             if (module.callbacks.hasOwnProperty('storeAlways') && typeof module.callbacks['storeAlways'] == 'function')
                 module.callbacks['storeAlways'](xhr);
         });
@@ -119,7 +127,10 @@ FW.helpers.Rest = (function($, FW) {
             accepts: {
                 json: 'application/json'
             },
-            dataType: 'json'
+            dataType: 'json',
+            beforeSend: function() {
+                FW.disableActionButtons();
+            }
         }).done(function(xhr) {
             if (module.callbacks.hasOwnProperty('updateDone') && typeof module.callbacks['updateDone'] == 'function')
                 module.callbacks['updateDone'](xhr);
@@ -127,6 +138,7 @@ FW.helpers.Rest = (function($, FW) {
             if (module.callbacks.hasOwnProperty('updateFail') && typeof module.callbacks['updateFail'] == 'function')
                 module.callbacks['updateFail'](xhr);
         }).always(function(xhr) {
+            FW.enableActionButtons();
             if (module.callbacks.hasOwnProperty('updateAlways') && typeof module.callbacks['updateAlways'] == 'function')
                 module.callbacks['updateAlways'](xhr);
         });
@@ -147,7 +159,10 @@ FW.helpers.Rest = (function($, FW) {
                 accepts: {
                     json: 'application/json'
                 },
-                dataType: 'json'
+                dataType: 'json',
+                beforeSend: function() {
+                    FW.disableActionButtons();
+                }
             }).done(function(xhr) {
                 if (module.callbacks.hasOwnProperty('destroyDone') && typeof module.callbacks['destroyDone'] == 'function')
                     module.callbacks['destroyDone'](xhr);
@@ -155,6 +170,7 @@ FW.helpers.Rest = (function($, FW) {
                 if (module.callbacks.hasOwnProperty('destroyFail') && typeof module.callbacks['destroyFail'] == 'function')
                     module.callbacks['destroyFail'](xhr);
             }).always(function(xhr) {
+                FW.enableActionButtons();
                 if (module.callbacks.hasOwnProperty('destroyAlways') && typeof module.callbacks['destroyAlways'] == 'function')
                     module.callbacks['destroyAlways'](xhr);
             });
@@ -176,7 +192,10 @@ FW.helpers.Rest = (function($, FW) {
                 accepts: {
                     json: 'application/json'
                 },
-                dataType: 'json'
+                dataType: 'json',
+                beforeSend: function() {
+                    FW.disableActionButtons();
+                }
             }).done(function(xhr) {
                 if (module.callbacks.hasOwnProperty('destroyDone') && typeof module.callbacks['destroyDone'] == 'function')
                     module.callbacks['destroyDone'](xhr);
@@ -184,6 +203,7 @@ FW.helpers.Rest = (function($, FW) {
                 if (module.callbacks.hasOwnProperty('destroyFail') && typeof module.callbacks['destroyFail'] == 'function')
                     module.callbacks['destroyFail'](xhr);
             }).always(function(xhr) {
+                FW.enableActionButtons();
                 if (module.callbacks.hasOwnProperty('destroyAlways') && typeof module.callbacks['destroyAlways'] == 'function')
                     module.callbacks['destroyAlways'](xhr);
             });
