@@ -53,9 +53,13 @@ FW.components.Map = function (domr, controller) {
 
                         if (reg.hasOwnProperty('latitude')) 
                             lat = reg.latitude;
+                        else if (reg.hasOwnProperty('lat'))
+                            lat = reg.lat;
 
                         if (reg.hasOwnProperty('longitude'))  
                             lon = reg.longitude;
+                        else if (reg.hasOwnProperty('lon'))
+                            lon = reg.lon;
 
                         if (!lat && reg.hasOwnProperty('geom') && reg.geom.hasOwnProperty('coordinates')) {
                             lat = reg.geom.coordinates[0];
@@ -73,11 +77,21 @@ FW.components.Map = function (domr, controller) {
                             name: reg.nome,
                         });
 
+                        var color = null;
+
+                        if (FW.getModule(Map.getController()).parsers.hasOwnProperty('color')) 
+                            color = FW.getModule(Map.getController()).parsers.color(reg);
+
+                        var pointStyle = {                                     
+                            crossOrigin: 'anonymous',
+                            src: 'http://localhost:8080/web/applications/portal-ana/application/public/img/reservatorio.png'
+                        }
+
+                        if (color)
+                            pointStyle.color = color;
+
                         regPoint.setStyle(new ol.style.Style({
-                            image: new ol.style.Icon(({                                
-                                crossOrigin: 'anonymous',
-                                src: 'http://localhost:8080/web/applications/portal-ana/application/public/img/reservatorio-azul.png'
-                            }))
+                            image: new ol.style.Icon((pointStyle))
                         })); 
                                                 
                         Map.list.push(regPoint);
@@ -116,7 +130,7 @@ FW.components.Map = function (domr, controller) {
             }
         }
 
-        FW.helpers.Rest.getList(Map.getController(), callbacks, $.extend({limit: 999}, filters));
+        FW.helpers.Rest.getList(Map.getController(), callbacks, $.extend({limit: 9999999}, filters));
 
         return Map;
     };
