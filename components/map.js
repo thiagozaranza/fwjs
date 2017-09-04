@@ -5,23 +5,27 @@ FW.components.Map = function (domr, controller) {
     var Map = FW.components.Component('Map', domr, controller); 
 
     Map.map = null;
-    Map.zoom = 5;
+    
     Map.center = [-40, -10];
     Map.list = [];
     Map.layers = [];
 
+    var zoom = 5;
     var marker = 'reservatorio';
+    var center = [-40, -10];
 
     function init(domr, controller) {
 
         marker = Map.getAttr('fw-map-marker') || marker;            
+        zoom = Map.getAttr('fw-map-zoom') || zoom;
+        center = parseCenter(Map.getAttr('fw-map-center')) || center;
 
         Map.map = new ol.Map({
             layers: [getRasterLayer()],
             target: domr[0],
             view: new ol.View({
-              center: ol.proj.fromLonLat(Map.center),
-              zoom: Map.zoom
+              center: ol.proj.fromLonLat(center),
+              zoom: zoom
             })
         }); 
 
@@ -34,7 +38,22 @@ FW.components.Map = function (domr, controller) {
         return new ol.layer.Tile({
             source: new ol.source.OSM()
         });
-    }
+    };
+
+    function parseCenter(center) {
+        if (!center)
+            return null;
+
+        if (!typeof center == 'string')
+            return null;
+
+        var parts = center.split(',');
+
+        if (parts.length != 2)
+            return null;
+
+        return [parseFloat(parts[0]), parseFloat(parts[1])];
+    };
 
     Map.load = function(callbacks, filters) {
 
