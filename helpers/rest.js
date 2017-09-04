@@ -30,18 +30,18 @@ FW.helpers.Rest = (function($, FW) {
             dataType: 'json',
             beforeSend: function( xhr ) {
                 FW.disableActionButtons();
-                if (callbacks.hasOwnProperty('beforeSend'))
+                if (callbacks && callbacks.hasOwnProperty('beforeSend'))
                     callbacks['beforeSend'](xhr);
             }
         }).done(function(xhr, textStatus) {
-            if (callbacks.hasOwnProperty('done'))
+            if (callbacks && callbacks.hasOwnProperty('done'))
                 callbacks['done'](xhr, textStatus);
         }).fail(function(xhr, textStatus) {
-            if (callbacks.hasOwnProperty('done'))
+            if (callbacks && callbacks.hasOwnProperty('done'))
                 callbacks['fail'](xhr, textStatus);
         }).always(function(xhr) {
             FW.enableActionButtons();
-            if (callbacks.hasOwnProperty('always'))
+            if (callbacks && callbacks.hasOwnProperty('always'))
                 callbacks['always'](xhr);
         });
     };
@@ -64,18 +64,18 @@ FW.helpers.Rest = (function($, FW) {
             dataType: 'json',
             beforeSend: function( xhr ) {
                 FW.disableActionButtons();
-                if (callbacks.hasOwnProperty('beforeSend'))
+                if (callbacks && callbacks.hasOwnProperty('beforeSend'))
                     callbacks['beforeSend'](xhr);
             }
         }).done(function(xhr, textStatus) {
-            if (callbacks.hasOwnProperty('done'))
+            if (callbacks && callbacks.hasOwnProperty('done'))
                 callbacks['done'](xhr, textStatus);
         }).fail(function(xhr, textStatus) {
-            if (callbacks.hasOwnProperty('fail'))
+            if (callbacks && callbacks.hasOwnProperty('fail'))
                 callbacks['fail'](xhr, textStatus);
         }).always(function(xhr) {
             FW.enableActionButtons();
-            if (callbacks.hasOwnProperty('always'))
+            if (callbacks && callbacks.hasOwnProperty('always'))
                 callbacks['always'](xhr);
         });
     };

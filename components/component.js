@@ -1,6 +1,8 @@
-FW.components.Component = function(component, domr, controller) {
+FW.components.Component = function(domr, controller) {
 
     "Use Strict";
+
+    var component = {};
 
     component.domr = domr;  
     component._controller = controller;
@@ -47,6 +49,37 @@ FW.components.Component = function(component, domr, controller) {
             title: title,
             action: action
         };
+    };
+
+    component.addParams = function(params, components) {        
+        for (var key in params) {
+            component.addParam(key, params[key]);
+        }
+    };
+
+    component.addParam = function(key, value) {
+        if (key == 'id')
+            component.domr.attr("fw-id", value);
+        else
+            component.domr.attr("fw-param-" . key, value);
+    };
+
+    component.getParams = function() {  
+
+        var obj = {};
+        
+        component.domr.each(function() {
+            $.each(this.attributes, function() {
+                if(this.specified) {
+                    if (this.name == 'fw-id')
+                        obj['id'] = this.value;
+                    else if (this.name.indexOf('fw-param-') >= 0)
+                        obj[this.name.substring('fw-param-'.length, this.name.length)] = this.value;
+                }
+            });
+        });
+
+        return obj;
     };
 
     component.waiting = function(title) {

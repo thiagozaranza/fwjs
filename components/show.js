@@ -2,11 +2,9 @@ FW.components.Show = function (domr, controller) {
     
     "use strict";
 
-    var Show = Show || {};
+    var Show = FW.components.Component(domr, controller);
 
     function init(domr, controller) {  
-
-        Show = FW.components.Component(Show, domr, controller);      
 
         Show.load(Show.domr.attr("fw-id"));
 

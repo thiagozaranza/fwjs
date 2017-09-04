@@ -185,6 +185,17 @@ window.FW = {
             components.combo.push(component);            
         });
 
+        domr.find("[fw-component='map']").each(function() {
+            var component = FW.getRegisteredComponent('map', $(this));
+            if (!component) 
+                component = FW.registerComponent('map', new FW.components.Map($(this), $(this).attr('fw-controller') || controller));            
+
+            if (!components.hasOwnProperty('map'))
+                components.grid = [];
+
+            components.grid.push(component);            
+        });
+
         domr.find("[fw-component='grid']").each(function() {
             var component = FW.getRegisteredComponent('grid', $(this));
             if (!component) 

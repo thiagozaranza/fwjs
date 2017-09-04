@@ -2,15 +2,13 @@ FW.components.Combo = function(domr, controller) {
 
     "Use Strict";
 
-    var Combo = Combo || {};
+    var Combo = FW.components.Component(domr, controller);
 
     var loaded = false;
     var loading = false;
     var loadingText = 'Carregando opções...';
     
     function init(domr, controller) {
-
-        Combo = FW.components.Component(Combo, domr, controller);
 
         domr.attr('data-live-search', "true");
         domr.selectpicker({

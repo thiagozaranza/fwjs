@@ -2,7 +2,7 @@ FW.components.Modal = function(config) {
 
     "Use Strict";
 
-    var Modal = Modal || {};
+    var Modal = FW.components.Component();
 
     Modal.config = config;
     Modal.formReady = false;
@@ -11,8 +11,6 @@ FW.components.Modal = function(config) {
     var form;
 
     function init() {
-
-        Modal = FW.components.Component(Modal);
         
         return Modal;
     };

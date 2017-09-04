@@ -1,11 +1,9 @@
 FW.components.Upload = function (domr, controller) {
     "use strict";
 
-    var Upload = Upload || {};
+    var Upload = FW.components.Component(domr, controller); 
 
     function init(domr, controller) {
-
-        Upload = FW.components.Component(Upload, domr, controller); 
 
         dropzone();
 

@@ -2,7 +2,7 @@ FW.components.Grid = function(domr, controller) {
 
     "Use Strict";
 
-    var Grid = Grid || {};
+    var Grid = FW.components.Component(domr, controller);
 
     Grid.pageResponse;
     Grid.checkedList = [];
@@ -26,8 +26,6 @@ FW.components.Grid = function(domr, controller) {
     };
 
     function init(domr, controller) {
-
-        Grid = FW.components.Component(Grid, domr, controller);
 
         Grid.table = Grid.domr.find('table');
 
@@ -631,6 +629,14 @@ FW.components.Grid = function(domr, controller) {
         });
     }
 
+    function refreshMap() {
+        Grid.domr.find('[fw-component="map"]').each(function() {
+            var map = FW.getRegisteredComponent('map', $(this));
+            map.addParams(getFilters());
+            map.refresh();
+        });
+    }
+
     function scan() {
 
         FW.scan(Grid.domr);
@@ -643,6 +649,8 @@ FW.components.Grid = function(domr, controller) {
                     event.preventDefault();
                     Grid.domr.find('form').find('button[fw-action="erase-filters"]').show();
                     Grid.paginate(1);
+
+                    refreshMap();
                 }
             })
         });
@@ -652,6 +660,8 @@ FW.components.Grid = function(domr, controller) {
                 event.preventDefault();
                 Grid.domr.find('form').find('button[fw-action="erase-filters"]').show();
                 Grid.paginate(1);
+
+                refreshMap();
             });
         });
 
@@ -665,6 +675,8 @@ FW.components.Grid = function(domr, controller) {
             });
             $(this).hide();
             Grid.paginate(1);
+
+            refreshMap();
         });
 
         Grid.domr.find("button[fw-action='download']").each(function() {

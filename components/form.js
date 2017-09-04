@@ -2,14 +2,12 @@ FW.components.Form = function(domr, controller) {
 
     "Use Strict";
 
-    var Form = Form || {}; 
+    var Form = FW.components.Component(domr, controller); 
 
     var loadId
 
     function init(domr)
-    {        
-        Form = FW.components.Component(Form, domr, controller);
-
+    {   
         loadId = Form.domr.attr('fw-load');
 
         scan();
