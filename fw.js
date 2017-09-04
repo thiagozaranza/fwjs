@@ -85,6 +85,19 @@ window.FW = {
         return null;
     },
 
+    getUrlBase: function() {
+
+        var origin = window.location.origin;
+        var path = window.location.pathname;
+
+        if (path.indexOf('public'))
+            path = path.substring(0, path.indexOf('public') + 6);
+        else 
+            path = '';
+
+        return origin + path;        
+    },
+
     getModule: function(moduleController) {
 
         for (var module in FW.modules) {

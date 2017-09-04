@@ -10,7 +10,11 @@ FW.components.Map = function (domr, controller) {
     Map.list = [];
     Map.layers = [];
 
+    var marker = 'reservatorio';
+
     function init(domr, controller) {
+
+        marker = Map.getAttr('fw-map-marker') || marker;            
 
         Map.map = new ol.Map({
             layers: [getRasterLayer()],
@@ -82,9 +86,14 @@ FW.components.Map = function (domr, controller) {
                         if (FW.getModule(Map.getController()).parsers.hasOwnProperty('color')) 
                             color = FW.getModule(Map.getController()).parsers.color(reg);
 
+                        if (FW.getModule(Map.getController()).parsers.hasOwnProperty('marker')) 
+                            marker = FW.getModule(Map.getController()).parsers.marker(reg);
+
+                        if (!marker) return;
+
                         var pointStyle = {                                     
                             crossOrigin: 'anonymous',
-                            src: 'http://localhost:8080/web/applications/portal-ana/application/public/img/reservatorio.png'
+                            src: FW.getUrlBase() + '/img/' + marker + '.png'
                         }
 
                         if (color)

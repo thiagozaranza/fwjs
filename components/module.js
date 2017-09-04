@@ -151,6 +151,11 @@ FW.components.Module = function(FW, controller) {
         return module;
     };
 
+    module.setParser = function (parserName, parserFunction) {
+        module.parsers[parserName] = parserFunction;
+        return module;
+    };
+
     module.setAction = function (actionName, actionFunction) {
         module.actions[actionName] = actionFunction;
         return module;
