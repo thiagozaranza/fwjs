@@ -2,7 +2,7 @@ FW.components.Combo = function(domr, controller) {
 
     "Use Strict";
 
-    var Combo = FW.components.Component(domr, controller);
+    var Combo = FW.components.Component('Combo', domr, controller);
 
     var loaded = false;
     var loading = false;

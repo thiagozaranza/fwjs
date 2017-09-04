@@ -2,7 +2,7 @@ FW.components.Modal = function(config) {
 
     "Use Strict";
 
-    var Modal = FW.components.Component();
+    var Modal = FW.components.Component('Modal');
 
     Modal.config = config;
     Modal.formReady = false;

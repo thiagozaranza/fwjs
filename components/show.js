@@ -2,7 +2,7 @@ FW.components.Show = function (domr, controller) {
     
     "use strict";
 
-    var Show = FW.components.Component(domr, controller);
+    var Show = FW.components.Component('Show', domr, controller);
 
     function init(domr, controller) {  
 

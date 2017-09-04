@@ -1,7 +1,7 @@
 FW.components.Upload = function (domr, controller) {
     "use strict";
 
-    var Upload = FW.components.Component(domr, controller); 
+    var Upload = FW.components.Component('Upload', domr, controller); 
 
     function init(domr, controller) {
 

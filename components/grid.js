@@ -2,7 +2,7 @@ FW.components.Grid = function(domr, controller) {
 
     "Use Strict";
 
-    var Grid = FW.components.Component(domr, controller);
+    var Grid = FW.components.Component('Grid', domr, controller);
 
     Grid.pageResponse;
     Grid.checkedList = [];
@@ -229,7 +229,8 @@ FW.components.Grid = function(domr, controller) {
                 var nameParts = fields[item].name.split('-');
                 
                 if (nameParts.length == 1) {
-                    if (form.find('[name="'+fields[item].name+'"]')[0].localName == 'input')
+                    var field = form.find('[name="'+fields[item].name+'"]')[0];
+                    if (field.localName == 'input' && field.type == 'text')
                         op = 'LK';
                     else 
                         op = 'EQ';
@@ -632,8 +633,8 @@ FW.components.Grid = function(domr, controller) {
     function refreshMap() {
         Grid.domr.find('[fw-component="map"]').each(function() {
             var map = FW.getRegisteredComponent('map', $(this));
-            map.addParams(getFilters());
-            map.refresh();
+
+            map.clearParams().addParams(getFilters()).refresh();
         });
     }
 

@@ -1,11 +1,12 @@
-FW.components.Component = function(domr, controller) {
+FW.components.Component = function(name, domr, controller) {
 
     "Use Strict";
 
     var component = {};
 
     component.domr = domr;  
-    component._controller = controller;
+    component._name = name;
+    component._controller = controller;    
     component._module;
     component._waiting;
 
@@ -49,19 +50,33 @@ FW.components.Component = function(domr, controller) {
             title: title,
             action: action
         };
+
+        return component;
     };
 
-    component.addParams = function(params, components) {        
+    component.clearParams = function() {
+        var params = component.getParams();
+
+        for (var param in params) {
+            component.domr.removeAttr('fw-param-' + param);
+        }
+        return component;
+    };
+
+    component.addParams = function(params, components) {
         for (var key in params) {
             component.addParam(key, params[key]);
         }
+        return component;
     };
 
     component.addParam = function(key, value) {
         if (key == 'id')
             component.domr.attr("fw-id", value);
         else
-            component.domr.attr("fw-param-" . key, value);
+            component.domr.attr("fw-param-" + key, value);
+
+        return component;
     };
 
     component.getParams = function() {  

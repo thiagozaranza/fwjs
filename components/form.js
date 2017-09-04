@@ -2,7 +2,7 @@ FW.components.Form = function(domr, controller) {
 
     "Use Strict";
 
-    var Form = FW.components.Component(domr, controller); 
+    var Form = FW.components.Component('Form', domr, controller); 
 
     var loadId
 

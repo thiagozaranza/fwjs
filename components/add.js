@@ -2,7 +2,7 @@ FW.components.Add = function(domr, controller) {
 
     "Use Strict";
 
-    var Add = FW.components.Component(domr, controller);
+    var Add = FW.components.Component('Add', domr, controller);
 
     Add.list = [];
     Add.name;

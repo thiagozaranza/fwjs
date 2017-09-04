@@ -2,7 +2,7 @@ FW.components.Button = function(domr, controller) {
 
     "Use Strict";
 
-    var Button = FW.components.Component(domr, controller);
+    var Button = FW.components.Component('Button', domr, controller);
 
     Button.id = null;
     Button.action = null;

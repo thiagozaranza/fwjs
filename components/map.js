@@ -2,7 +2,7 @@ FW.components.Map = function (domr, controller) {
   
     "use strict";
 
-    var Map = FW.components.Component(domr, controller); 
+    var Map = FW.components.Component('Map', domr, controller); 
 
     Map.map = null;
     Map.zoom = 5;
@@ -36,6 +36,8 @@ FW.components.Map = function (domr, controller) {
 
         if (!callbacks)
             callbacks = [];
+
+        Map.list = [];
 
         if (!callbacks.hasOwnProperty('done')) {
             callbacks['done'] = function(xhr) {
@@ -92,7 +94,7 @@ FW.components.Map = function (domr, controller) {
 
                 Map.layers.push(vectorLayer);
 
-                Map.map.on("click", function(e) {                                    
+                var onClickFunction = function(e) {                                 
                     var clicado = false;                    
                     Map.map.forEachFeatureAtPixel(e.pixel, function (feature, layer) {
                         if (!clicado) {
@@ -100,14 +102,15 @@ FW.components.Map = function (domr, controller) {
                             var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(
                                 coordinate, 'EPSG:3857', 'EPSG:4326'));
 
-                            var name = feature.get('name');
-
                             FW.getModule(Map.getController()).actions.modalShow({id: feature.get('id')});
                         }
 
                         clicado = true;
                     });
-                });
+                };
+
+                Map.map.removeEventListener("click", onClickFunction);
+                Map.map.on("click", onClickFunction);
 
                 Map.addLayer(vectorLayer);                
             }
