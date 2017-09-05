@@ -56,7 +56,7 @@ FW.components.Module = function(FW, controller) {
         var moduleController = module.getController();
 
         for (var type in FW.registry) {
-            if (type != 'grid' && type!='combo' && type!='show')
+            if (type != 'grid' && type!='combo' && type!='show' && type!='map')
                 continue;
             for (var item in FW.registry[type]) {
                 var component = FW.registry[type][item];
@@ -158,11 +158,6 @@ FW.components.Module = function(FW, controller) {
 
     module.setAction = function (actionName, actionFunction) {
         module.actions[actionName] = actionFunction;
-        return module;
-    };
-
-    module.addForm = function(form) {
-        module.components.forms.push(form);
         return module;
     };
 
