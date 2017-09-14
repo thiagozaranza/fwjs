@@ -56,6 +56,16 @@ FW.helpers.Parser = (function($, FW) {
         return link;
     };
 
+    Parser.classname = function(fullObj, obj) {
+
+        if (!obj || typeof obj != 'string')
+            return '';
+
+        var parts = obj.split('\\');
+
+        return parts[parts.length - 1];
+    };    
+
     Parser.dateFormat = function(fullObj, obj) {
         if (!obj || typeof obj != 'string')
             return '';

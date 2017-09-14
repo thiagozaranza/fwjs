@@ -138,7 +138,7 @@ FW.components.Modal = function(config) {
         return $(Modal.domr).css('display') == 'block';
     };
 
-    Modal.open = function( params ) {
+    Modal.open = function(params) {
 
         if (!isLoaded())
             Modal.load({                

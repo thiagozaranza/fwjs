@@ -65,10 +65,21 @@ FW.components.Combo = function(domr, controller) {
         Combo.domr.append('<option></option>');
 
         for (var i in obj.list) {
-            if (Combo.value == obj.list[i].id)
-                Combo.domr.append('<option value="'+obj.list[i].id+'" selected="selected">'+obj.list[i].nome+'</option>');
+            var id = obj.list[i].id;
+            var nome = obj.list[i].nome;
+
+            if (!id)
+                id = nome;
+
+            var parse = Combo.domr.attr('fw-parse');
+
+            if (parse)
+                nome = FW.helpers.Parser.parse(Combo.getModule(), parse, obj.list[i], 'nome');
+
+            if (Combo.value == id)
+                Combo.domr.append('<option value="'+id+'" selected="selected">'+nome+'</option>');
             else
-                Combo.domr.append('<option value="'+obj.list[i].id+'">'+obj.list[i].nome+'</option>');
+                Combo.domr.append('<option value="'+id+'">'+nome+'</option>');
         }
 
         Combo.domr.selectpicker('refresh');

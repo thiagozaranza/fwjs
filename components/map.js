@@ -144,7 +144,8 @@ FW.components.Map = function (domr, controller) {
                             var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(
                                 coordinate, 'EPSG:3857', 'EPSG:4326'));
 
-                            FW.getModule(Map.getController()).actions.modalShow({id: feature.get('id')});
+                            if (feature.get('id'))
+                                FW.getModule(Map.getController()).actions.modalShow({id: feature.get('id')});
                         }
 
                         clicado = true;
@@ -154,7 +155,9 @@ FW.components.Map = function (domr, controller) {
                 Map.map.removeEventListener("click", onClickFunction);
                 Map.map.on("click", onClickFunction);
 
-                Map.addLayer(vectorLayer);                
+                //Map.loadLayer('macro-regiao', 'http://api.funceme.br/v1/geoserver/adm/macro-regiao');               
+                
+                Map.addLayer(vectorLayer);               
             }
         }
 
@@ -163,26 +166,66 @@ FW.components.Map = function (domr, controller) {
         return Map;
     };
 
+    function getColor(indice) {
+
+        if (!indice)
+            indice = parseInt(Math.random()*1000)%12;
+
+        var cores = ["#3983f9","#5938f9","#ef07c4","#c4002a","#07993f","#175e07","#7c001a","#9607ef","#777705","#aa6401","#c6400f","#c60f0f"];
+        
+        return cores[indice];
+    }
+
+    function createStyle(color, width) {
+        return new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: color,
+                    width: width
+                })
+            });
+    }
+
+    Map.loadLayer = function(name, url, style) {        
+
+        if (!style)
+            style = createStyle(getColor(), 1);
+
+        var layer = new ol.layer.Vector({
+            source: new ol.source.Vector({
+                url: url,
+                format: new ol.format.KML({
+                    extractStyles: false
+                })
+            }),
+            style
+        });
+        layer.set('name', name);        
+        
+        return Map.addLayer(layer);
+    };
+
     Map.addLayer = function(layer) {
         Map.map.addLayer(layer);  
         return Map;
     };
 
-    Map.refresh = function() {
-
-        Map.clean();
-
-        Map.load(null, Map.getParams());
-
+    Map.removeLayer = function(name) {
+        Map.map.getLayers().forEach(function (el) {
+            if (el.get('name') === name) {
+                Map.map.removeLayer(el);
+            }
+        });
         return Map;
+    }
+
+    Map.refresh = function() {
+        return Map.clean().load(null, Map.getParams());
     };
 
     Map.clean = function() {
-
         for (var item in Map.layers) {
             Map.map.removeLayer(Map.layers[item]);
         }
-
         return Map;
     };
 
