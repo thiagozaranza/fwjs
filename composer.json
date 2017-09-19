@@ -1,0 +1,12 @@
+{
+    "name": "thiagozaranza/fwjs",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Thiago Zaranza",
+            "email": "thiagozaranza@gmail.com"
+        }
+    ],
+    "require": {}
+}
