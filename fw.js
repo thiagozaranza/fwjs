@@ -1,6 +1,6 @@
 window.FW = {
     config: {
-        url: location.href.split('/public')[0] + '/public/admin'
+        url: location.href.split('/admin')[0] + '/admin'
     },
     modalStack : [],
     modules: {},
@@ -90,7 +90,7 @@ window.FW = {
         var origin = window.location.origin;
         var path = window.location.pathname;
 
-        if (path.indexOf('public'))
+        if (path.indexOf('public') > 0)
             path = path.substring(0, path.indexOf('public') + 6);
         else 
             path = '';
