@@ -88,6 +88,8 @@ FW.components.Component = function(name, domr, controller) {
                 if(this.specified) {
                     if (this.name == 'fw-id')
                         obj['id'] = this.value;
+                    else if (this.name == 'fw-fetch')
+                        obj['fetch'] = this.value;
                     else if (this.name.indexOf('fw-param-') >= 0)
                         obj[this.name.substring('fw-param-'.length, this.name.length)] = this.value;
                 }

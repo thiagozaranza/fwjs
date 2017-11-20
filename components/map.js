@@ -19,6 +19,7 @@ FW.components.Map = function (domr, controller) {
         marker = Map.getAttr('fw-map-marker') || marker;            
         zoom = Map.getAttr('fw-map-zoom') || zoom;
         center = parseCenter(Map.getAttr('fw-map-center')) || center;
+        fetch = Map.getAttr('fw-fetch');
 
         Map.map = new ol.Map({
             layers: [getRasterLayer()],
@@ -29,7 +30,7 @@ FW.components.Map = function (domr, controller) {
             })
         }); 
 
-        Map.load();
+        Map.load(null, Map.getParams());
 
         return Map;
     };
