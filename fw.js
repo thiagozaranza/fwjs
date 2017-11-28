@@ -7,6 +7,7 @@ window.FW = {
     components: [],
     helpers: [],
     registry: {},
+    meta: {},
 
     actionButtons: {
         storeSave: {

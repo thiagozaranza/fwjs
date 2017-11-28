@@ -9,6 +9,8 @@ FW.components.Module = function(FW, controller) {
         name: controller
     };
 
+    module.meta = {};
+
     module.parsers = {};
 
     module.operations = {};

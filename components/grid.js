@@ -238,12 +238,12 @@ FW.components.Grid = function(domr, controller) {
                     op = nameParts[nameParts.length-1];
                     if (['EQ', 'NEQ', 'LK', 'GT', 'GTE', 'LT', 'LTE'].indexOf(op) !== -1) {
                         nameParts.pop()
-                        name = nameParts.join('-');                        ;
+                        name = nameParts.join('-');
                     } else {
                         name = nameParts.join('-');
                         op = 'EQ';
                     }                    
-                } 
+                }
 
                 if (fields[item].value && fields[item].value != 'Carregando opções...')
                     filters[name + '-' + op] = fields[item].value;
