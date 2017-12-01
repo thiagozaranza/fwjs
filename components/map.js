@@ -113,10 +113,8 @@ FW.components.Map = function (domr, controller) {
                                     geomObjects[prop].items.push(makePoint(prop, reg, reg[prop]));
                                     break;
                                 case 'Polygon':                                
-                                    geomObjects[prop].items.push(makePolygon(prop, reg, reg[prop]));
-                                    break;
-                                case 'MultiPolygon':    
-                                    geomObjects[prop].items.push(makeMultiPolygon(prop, reg, reg[prop]));
+                                case 'MultiPolygon':
+                                    geomObjects[prop].items.push(makePolygon(prop, reg, reg[prop]));                                    
                                     break;
                                 default:
                                     alert(reg[prop].type);
@@ -144,7 +142,7 @@ FW.components.Map = function (domr, controller) {
                             vector: vectorLayer
                         }); 
 
-                    } else if (geomObjects[item].type == 'Polygon') {
+                    } else {
 
                         var vectorSource = new ol.source.Vector({
                             features: geomObjects[item].items
@@ -157,7 +155,7 @@ FW.components.Map = function (domr, controller) {
                         });
 
                         Map.layers.push({
-                            type: 'Polygon',
+                            type: geomObjects[item].type,
                             vector: vectorLayer
                         });
                     }
@@ -333,7 +331,7 @@ FW.components.Map = function (domr, controller) {
 
         return polygon;
     }
-
+    
     function getColor(indice) {
 
         if (!indice)
