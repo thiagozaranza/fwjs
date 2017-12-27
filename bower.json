@@ -4,7 +4,7 @@
   "authors": [
     "Thiago Zaranga <thiagozaranza@gmail.com>"
   ],
-  "description": "\"That is a library written over jQuery which make a abstraction of yours views and work looks like AngularJS\"",
+  "description": "That is a library written over jQuery which make a abstraction of yours views and work looks like AngularJS",
   "main": "fw.js",
   "license": "MIT",
   "ignore": [
