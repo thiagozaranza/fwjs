@@ -141,6 +141,17 @@ FW.components.Module = function(FW, controller) {
                 });
             }
             module.modalAdd.open(obj);
+        },
+        modalFind: function(obj) {
+            if (!module.modalFind) {
+                module.modalFind = new FW.components.Modal({
+                    id: 'modal-find-' + module.getController(),
+                    title: 'Localizar ' + module.config.name,
+                    url: module.config.controller + '/modal/find',
+                    actionButtons: [ 'find' ]
+                });
+            }
+            module.modalFind.open(obj);
         }
     };
 

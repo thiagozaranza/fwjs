@@ -93,6 +93,11 @@ FW.components.Combo = function(domr, controller) {
     };
 
     Combo.clean = function () {
+        
+        Combo.reference = Combo.domr.attr('fw-reference');
+        Combo.value = Combo.domr.attr('fw-value');
+        Combo._controller = Combo.domr.attr('fw-controller');
+
         Combo.domr.find('option').remove();    
         Combo.domr.selectpicker('refresh');
         loaded = false;
@@ -152,7 +157,7 @@ FW.components.Combo = function(domr, controller) {
 
         var data = { limit: 999999, orderBy: 'nome'};
 
-        if (Combo.reference) {            
+        if (Combo.reference && typeof Combo.reference.val === 'function') {
             var referenceValue = Combo.reference.val();
 
             if (referenceValue == loadingText) {

@@ -55,6 +55,15 @@ window.FW = {
                 'fw-action': 'modalAdd',
             }            
         },
+        modalFind: {        
+            align: 'right',
+            color: 'primary',
+            icon: 'plus',
+            text: 'Selecionar',
+            attrs: {                    
+                'fw-action': 'modalFind',
+            }            
+        },
         add: {        
             align: 'right',
             color: 'primary',
