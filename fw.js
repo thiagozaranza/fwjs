@@ -182,15 +182,32 @@ window.FW = {
                 FW.modules[controller] = new FW.components.Module(FW, controller);
         });
 
+        domr.find("button, a").each(function() {
+            var component = FW.getRegisteredComponent('button', $(this));
+            if (!component)
+                component = FW.registerComponent('button', new FW.components.Button($(this), $(this).attr('fw-controller') || controller));
+
+            if (!components.hasOwnProperty('button'))
+                components.button = [];
+
+            components.button.push(component);
+        });
+
         domr.find("form").each(function() {
-            var component = FW.getRegisteredComponent('form', $(this));            
-            if (!component) 
+            var component = FW.getRegisteredComponent('form', $(this));
+
+            if (!component)
                 component = FW.registerComponent('form', new FW.components.Form($(this), $(this).attr('fw-controller') || controller));
+
+            $(this).find("button, a").each(function() {
+                button = FW.getRegisteredComponent('button', $(this));
+                button.form = component;
+            });
 
             if (!components.hasOwnProperty('form')) 
                 components.form = [];
 
-            components.form.push(component);            
+            components.form.push(component);    
         });
 
         domr.find("select").each(function() {
@@ -261,17 +278,6 @@ window.FW = {
                 components.upload = [];
 
             components.upload.push(component);         
-        });
-
-        domr.find("button, a").each(function() {
-            var component = FW.getRegisteredComponent('button', $(this));
-            if (!component)
-                component = FW.registerComponent('button', new FW.components.Button($(this), $(this).attr('fw-controller') || controller));
-
-            if (!components.hasOwnProperty('button'))
-                components.button = [];
-
-            components.button.push(component);
         });
 
         domr.find("textarea").each(function() {

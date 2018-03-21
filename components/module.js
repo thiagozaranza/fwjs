@@ -52,6 +52,22 @@ FW.components.Module = function(FW, controller) {
         },
     };
 
+    module.cleanForms = function() {
+
+        var moduleController = module.getController();
+
+        for (var type in FW.registry) {
+            if (type != 'form')
+                continue;
+
+            for (var item in FW.registry[type]) {
+                var component = FW.registry[type][item];
+                if (component.getController() == moduleController && typeof component['clean'] == 'function')
+                    component.clean();
+            }
+        } 
+    }
+
     module.refreshComponentsWithSameController = function() {
 
         var hasComponent = false;
@@ -91,6 +107,9 @@ FW.components.Module = function(FW, controller) {
         },
         update: function (obj) {
             FW.helpers.Rest.update(module, obj);
+        },
+        export: function (obj) {
+            FW.helpers.Rest.export(module, obj);
         },
         destroy: function (obj) {
             FW.helpers.Rest.destroy(module, obj);

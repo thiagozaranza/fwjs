@@ -35,10 +35,13 @@ FW.helpers.Rest = (function($, FW) {
             }
         }).done(function(xhr, textStatus) {
             if (callbacks && callbacks.hasOwnProperty('done'))
-                callbacks['done'](xhr, textStatus);
+                callbacks['done'](xhr, textStatus);            
+
         }).fail(function(xhr, textStatus) {
             if (callbacks && callbacks.hasOwnProperty('done'))
                 callbacks['fail'](xhr, textStatus);
+            else if (xhr.status > 400) 
+                alert('Error (' + xhr.status + '): ' + xhr.statusText + '.');
         }).always(function(xhr) {
             FW.enableActionButtons();
             if (callbacks && callbacks.hasOwnProperty('always'))
@@ -73,6 +76,8 @@ FW.helpers.Rest = (function($, FW) {
         }).fail(function(xhr, textStatus) {
             if (callbacks && callbacks.hasOwnProperty('fail'))
                 callbacks['fail'](xhr, textStatus);
+            else if (xhr.status > 400) 
+                alert('Error (' + xhr.status + '): ' + xhr.statusText + '.');                
         }).always(function(xhr) {
             FW.enableActionButtons();
             if (callbacks && callbacks.hasOwnProperty('always'))
@@ -106,6 +111,8 @@ FW.helpers.Rest = (function($, FW) {
 
             if (status == 401)
                 alert('Operação não autorizada! Verifique se seu login expirou.')
+            else if (xhr.status > 400)                 
+                alert('Error (' + xhr.status + '): ' + xhr.statusText + '.');                
 
         }).always(function(xhr) {
             FW.enableActionButtons();
@@ -137,10 +144,48 @@ FW.helpers.Rest = (function($, FW) {
         }).fail(function(xhr) {
             if (module.callbacks.hasOwnProperty('updateFail') && typeof module.callbacks['updateFail'] == 'function')
                 module.callbacks['updateFail'](xhr);
+            else if (xhr.status > 400) 
+                alert('Error (' + xhr.status + '): ' + xhr.statusText + '.');                
         }).always(function(xhr) {
             FW.enableActionButtons();
             if (module.callbacks.hasOwnProperty('updateAlways') && typeof module.callbacks['updateAlways'] == 'function')
                 module.callbacks['updateAlways'](xhr);
+        });
+    };
+
+    Rest.export = function(module, obj) {
+
+        if (!obj.hasOwnProperty('_token') && FW.getToken())
+            obj['_token'] = FW.getToken();
+
+        $.ajax({
+            url: FW.config.url + '/' + module.config.controller + '/export',
+            method: "POST",
+            context: document.body,
+            data: obj,
+            accepts: {
+                json: 'application/json'
+            },
+            dataType: 'json',
+            beforeSend: function() {
+                FW.disableActionButtons();
+            }
+        }).done(function(xhr) {
+            if (module.callbacks.hasOwnProperty('exportDone') && typeof module.callbacks['exportDone'] == 'function')
+                module.callbacks['exportDone'](xhr);
+            else {
+                module.cleanForms();
+                alert(xhr.message);
+            }
+        }).fail(function(xhr) {
+            if (module.callbacks.hasOwnProperty('exportFail') && typeof module.callbacks['exportFail'] == 'function')
+                module.callbacks['exportFail'](xhr);
+            else if (xhr.status > 400)
+                alert('Error (' + xhr.status + '): ' + xhr.statusText + '.');            
+        }).always(function(xhr) {
+            FW.enableActionButtons();
+            if (module.callbacks.hasOwnProperty('exportAlways') && typeof module.callbacks['exportAlways'] == 'function')
+                module.callbacks['exportAlways'](xhr);
         });
     };
 
@@ -169,6 +214,8 @@ FW.helpers.Rest = (function($, FW) {
             }).fail(function(xhr) {
                 if (module.callbacks.hasOwnProperty('destroyFail') && typeof module.callbacks['destroyFail'] == 'function')
                     module.callbacks['destroyFail'](xhr);
+                else if (xhr.status > 400) 
+                    alert('Error (' + xhr.status + '): ' + xhr.statusText + '.');
             }).always(function(xhr) {
                 FW.enableActionButtons();
                 if (module.callbacks.hasOwnProperty('destroyAlways') && typeof module.callbacks['destroyAlways'] == 'function')
@@ -202,6 +249,8 @@ FW.helpers.Rest = (function($, FW) {
             }).fail(function(xhr) {
                 if (module.callbacks.hasOwnProperty('destroyFail') && typeof module.callbacks['destroyFail'] == 'function')
                     module.callbacks['destroyFail'](xhr);
+                else if (xhr.status > 400) 
+                    alert('Error (' + xhr.status + '): ' + xhr.statusText + '.');
             }).always(function(xhr) {
                 FW.enableActionButtons();
                 if (module.callbacks.hasOwnProperty('destroyAlways') && typeof module.callbacks['destroyAlways'] == 'function')

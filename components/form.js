@@ -58,7 +58,7 @@ FW.components.Form = function(domr, controller) {
 
         for (var field in obj) {
             Form.domr.find('input').each(function() {
-                var type = $(this).attr('type');                
+                var type = $(this).attr('type');
                 if ($(this).attr('name') == field) {
                     if (type == 'text') {
                         var value = FW.helpers.Parser.parse(Form.getModule(), $(this).attr('fw-parse'), obj, $(this).attr('name'));
@@ -173,6 +173,11 @@ FW.components.Form = function(domr, controller) {
             var component = FW.getRegisteredComponent('add', $(this));
             obj[component.name] = component.val();
         });
+
+        Form.domr.find('checkbox').each(function() {
+            
+        });
+
         return obj;
     }
 

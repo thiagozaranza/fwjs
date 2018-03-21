@@ -6,6 +6,7 @@ FW.components.Button = function(domr, controller) {
 
     Button.id = null;
     Button.action = null;
+    Button.form = null;
 
     function init(domr, controller) {
 
@@ -14,7 +15,11 @@ FW.components.Button = function(domr, controller) {
         
         Button.domr.on('click', function ()
         {
-            if (Button.getModule() && Button.getController() && Button.action && Button.getModule().actions.hasOwnProperty(Button.action) && typeof Button.getModule().actions[Button.action] == 'function') {
+            if (Button.getModule() 
+                && Button.getController() 
+                && Button.action 
+                && Button.getModule().actions.hasOwnProperty(Button.action) 
+                && typeof Button.getModule().actions[Button.action] == 'function') {
 
                 var obj = {};
 
@@ -28,6 +33,9 @@ FW.components.Button = function(domr, controller) {
                         }
                     });
                 });
+
+                if (jQuery.isEmptyObject(obj) && Button.form)
+                    obj = Button.form.getValue();
                 
                 Button.getModule().actions[Button.action](obj);
             }
